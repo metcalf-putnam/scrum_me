@@ -10,6 +10,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.util.ArrayList;
 
 /**
@@ -20,8 +26,13 @@ public class MainActivityFragment extends Fragment
 
     private ArrayList<Task> mTasks;
     private LinearLayoutManager mLayoutManager;
+    private TaskAdapter mAdapter;
     private Parcelable mListState;
     private OnTaskClickListener mCallback;
+    private FirebaseDatabase mFirebaseDatabase;
+    private DatabaseReference mTasksDatabaseReference;
+    private ChildEventListener mChildEventListener;
+
 
     public MainActivityFragment() {
     }
@@ -29,6 +40,9 @@ public class MainActivityFragment extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        mTasksDatabaseReference = mFirebaseDatabase.getReference().child("tasks");
+
         if(savedInstanceState != null){
             mTasks = savedInstanceState.getParcelableArrayList("tasks");
             mListState = savedInstanceState.getParcelable("state");
@@ -42,19 +56,38 @@ public class MainActivityFragment extends Fragment
         if(mListState != null){
             mLayoutManager.onRestoreInstanceState(mListState);
         }
-        TaskAdapter adapter = new TaskAdapter(this);
-        tasksView.setAdapter(adapter);
+        mAdapter = new TaskAdapter(this);
+        tasksView.setAdapter(mAdapter);
         tasksView.setHasFixedSize(true);
-//        mTasks = new ArrayList<Task>(0);
-//        Task dummy = new Task();
-//        dummy.setDescription("derp");
-//        dummy.setEffort(1);
-//        mTasks.add(dummy);
-        if(mTasks != null){
-            adapter.setTasks(mTasks);
-        }
+//
+//        if(mTasks != null){
+//            mAdapter.setTasks(mTasks); //might need to change? since Firebase does I think?
+//        }
 
+        mChildEventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Task task = dataSnapshot.getValue(Task.class);
+                mAdapter.addTask(task);
+            }
 
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        };
+        mTasksDatabaseReference.addChildEventListener(mChildEventListener);
 
         return rootView;
     }

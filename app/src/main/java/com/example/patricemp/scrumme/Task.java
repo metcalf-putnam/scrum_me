@@ -8,12 +8,12 @@ import android.os.Parcelable;
  */
 
 public class Task implements Parcelable {
-    private String mDescription;
-    private int mEffort;
-    private String mImportance;
-    private String mNotes;
-    private boolean mInSprint;
-    private String mGroup;
+    private String description;
+    private int effort;
+    private String importance;
+    private String notes;
+    private boolean inSprint;
+    private String group;
 
     public static final Parcelable.Creator<Task> CREATOR
             = new Parcelable.Creator<Task>() {
@@ -29,50 +29,50 @@ public class Task implements Parcelable {
     public Task(){}
 
     private Task(Parcel in){
-        mDescription = in.readString();
-        mEffort = in.readInt();
-        mImportance = in.readString();
-        mNotes = in.readString();
-        mInSprint = (Boolean) in.readValue(null);
-        mGroup = in.readString();
+        description = in.readString();
+        effort = in.readInt();
+        importance = in.readString();
+        notes = in.readString();
+        inSprint = (Boolean) in.readValue(null);
+        group = in.readString();
     }
 
-    public void setDescription(String description){
-        mDescription = description;
+    public void setDescription(String desc){
+        description = desc;
     }
-    public void setEffort(int effort){
-        mEffort = effort;
+    public void setEffort(int ef){
+        effort = ef;
     }
-    public void setImportance(String importance){
-        mImportance = importance;
+    public void setImportance(String imp){
+        importance = imp;
     }
-    public void setNotes(String notes){
-        mNotes = notes;
+    public void setNotes(String noted){
+        notes = noted;
     }
-    public void setInSprint(boolean inSprint){
-        mInSprint = inSprint;
+    public void setInSprint(boolean boo){
+        inSprint = boo;
     }
-    public void setGroup(String group){
-        mGroup = group;
+    public void setGroup(String g){
+        group = g;
     }
 
     public String getDescription(){
-        return mDescription;
+        return description;
     }
     public int getEffort(){
-        return mEffort;
+        return effort;
     }
     public String getImportance(){
-        return mImportance;
+        return importance;
     }
     public String getNotes(){
-        return mNotes;
+        return notes;
     }
     public boolean getInSprint(){
-        return mInSprint;
+        return inSprint;
     }
     public String getGroup(){
-        return mGroup;
+        return group;
     }
 
     @Override
@@ -82,11 +82,11 @@ public class Task implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(mDescription);
-        dest.writeInt(mEffort);
-        dest.writeString(mImportance);
-        dest.writeString(mNotes);
-        dest.writeValue(mInSprint);
-        dest.writeString(mGroup);
+        dest.writeString(description);
+        dest.writeInt(effort);
+        dest.writeString(importance);
+        dest.writeString(notes);
+        dest.writeValue(inSprint);
+        dest.writeString(group);
     }
 }

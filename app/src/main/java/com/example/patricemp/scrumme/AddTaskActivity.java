@@ -10,6 +10,9 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Switch;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -20,12 +23,18 @@ public class AddTaskActivity extends AppCompatActivity {
     @BindView(R.id.spinner_effort) Spinner effortIn;
     @BindView(R.id.spinner_importance) Spinner importanceIn;
     @BindView(R.id.switch_in_sprint) Switch inSprintSwitch;
+    private FirebaseDatabase mFirebaseDatabase;
+    private DatabaseReference mTasksDatabaseReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_task);
         ButterKnife.bind(this);
+
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        mTasksDatabaseReference = mFirebaseDatabase.getReference().child("tasks");
+
         if(savedInstanceState != null){
             Task task = savedInstanceState.getParcelable("task");
             if(task != null){
@@ -44,6 +53,7 @@ public class AddTaskActivity extends AppCompatActivity {
                 Task task = getTask();
                 Intent intent = new Intent(getBaseContext(), MainActivity.class);
                 intent.putExtra("task", task);
+                mTasksDatabaseReference.push().setValue(task);
                 startActivity(intent);
             }
         });

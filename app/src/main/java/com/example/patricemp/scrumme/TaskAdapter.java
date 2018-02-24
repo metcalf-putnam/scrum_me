@@ -93,6 +93,12 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         notifyItemRangeInserted(0, tasks.size());
     }
 
+    public void addTask(Task task){
+        int currentSize = mTaskList.size();
+        mTaskList.add(task);
+        notifyItemInserted(currentSize);
+    }
+
 
     private void clearTasks(){
         if(mTaskList != null){

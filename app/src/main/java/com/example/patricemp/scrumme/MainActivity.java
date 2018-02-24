@@ -12,12 +12,18 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
         implements MainActivityFragment.OnTaskClickListener,
         MainActivityFragment.TaskProvider{
+
     private ArrayList<Task> mTasksArray;
+    private FirebaseDatabase mFirebaseDatabase;
+    private DatabaseReference mTasksDatabaseReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +31,9 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        mTasksDatabaseReference = mFirebaseDatabase.getReference().child("tasks");
 
         if(savedInstanceState != null){
             if(savedInstanceState.containsKey("tasks")){
