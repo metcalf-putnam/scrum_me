@@ -1,7 +1,9 @@
 package com.example.patricemp.scrumme;
 
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -10,7 +12,12 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends AppCompatActivity {
+import java.util.ArrayList;
+
+public class MainActivity extends AppCompatActivity
+        implements MainActivityFragment.OnTaskClickListener,
+        MainActivityFragment.TaskProvider{
+    private ArrayList<Task> mTasksArray;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,6 +25,29 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        if(savedInstanceState != null){
+            if(savedInstanceState.containsKey("tasks")){
+                mTasksArray = savedInstanceState.getParcelableArrayList("tasks");
+            }
+        }
+
+        ///replace later with Firebase calls
+        if(mTasksArray == null){
+            mTasksArray = new ArrayList<Task>(0);
+        }
+        Intent intent = getIntent();
+        if(intent != null){
+            if(intent.hasExtra("task")){
+                Task task = intent.getParcelableExtra("task");
+                mTasksArray.add(task);
+                MainActivityFragment fragment = new MainActivityFragment();
+                android.support.v4.app.FragmentManager manager = getSupportFragmentManager();
+                manager.beginTransaction()
+                        .add(R.id.fragment, fragment)
+                        .commit();
+            }
+        }
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -29,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
 //                        .setAction("Action", null).show();
             }
         });
+
+
     }
 
     @Override
@@ -51,5 +83,21 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void OnTaskSelected(Task task) {
+
+    }
+
+    @Override
+    public ArrayList<Task> getTasks() {
+        return mTasksArray;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+        outState.putParcelableArrayList("tasks", mTasksArray);
     }
 }

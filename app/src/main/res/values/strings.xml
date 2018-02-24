@@ -3,6 +3,13 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_settings">Settings</string>
 
+    <!-- Task Card Strings -->
+    <string name="card_example_desc">Finish card layout file</string>
+    <string name="card_example_effort">5</string>
+    <string name="card_add_to_sprint_text">+Sprint</string>
+    <string name="card_delete_task">Delete</string>
+    <string name="card_mark_complete">Complete</string>
+
     <!-- Add new Task Strings -->
     <string name="new_task_header">Add New Task</string>
     <string-array name="task_effort">
