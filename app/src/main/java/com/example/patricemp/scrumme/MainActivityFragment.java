@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -24,7 +25,6 @@ import java.util.ArrayList;
 public class MainActivityFragment extends Fragment
         implements TaskAdapter.TaskClickListener{
 
-    private ArrayList<Task> mTasks;
     private LinearLayoutManager mLayoutManager;
     private TaskAdapter mAdapter;
     private Parcelable mListState;
@@ -44,7 +44,6 @@ public class MainActivityFragment extends Fragment
         mTasksDatabaseReference = mFirebaseDatabase.getReference().child("tasks");
 
         if(savedInstanceState != null){
-            mTasks = savedInstanceState.getParcelableArrayList("tasks");
             mListState = savedInstanceState.getParcelable("state");
         }
         final View rootView = inflater.inflate(R.layout.fragment_main, container, false);
@@ -57,13 +56,7 @@ public class MainActivityFragment extends Fragment
             mLayoutManager.onRestoreInstanceState(mListState);
         }
         mAdapter = new TaskAdapter(this);
-        tasksView.setAdapter(mAdapter);
-        tasksView.setHasFixedSize(true);
-//
-//        if(mTasks != null){
-//            mAdapter.setTasks(mTasks); //might need to change? since Firebase does I think?
-//        }
-
+        mAdapter.clearTasks();
         mChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -88,7 +81,8 @@ public class MainActivityFragment extends Fragment
             }
         };
         mTasksDatabaseReference.addChildEventListener(mChildEventListener);
-
+        tasksView.setAdapter(mAdapter);
+        tasksView.setHasFixedSize(true);
         return rootView;
     }
 
@@ -106,21 +100,14 @@ public class MainActivityFragment extends Fragment
         super.onAttach(context);
         try{
             mCallback = (OnTaskClickListener) context;
-            mTasks = ((TaskProvider) context).getTasks();
-
         } catch(Exception e){
             e.printStackTrace();
         }
     }
 
-    public interface TaskProvider{
-        ArrayList<Task> getTasks();
-    }
-
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList("tasks", mTasks);
         outState.putParcelable("state", mListState);
     }
 }
