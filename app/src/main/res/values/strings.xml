@@ -3,6 +3,10 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_settings">Settings</string>
 
+    <!-- Adding and Removing Toasts-->
+    <string name="removed_task">Removed!</string>
+    <string name="undo_remove">Undo?</string>
+
     <!-- Task Card Strings -->
     <string name="card_example_desc">Finish card layout file</string>
     <string name="card_example_effort">5</string>

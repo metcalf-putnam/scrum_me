@@ -2,6 +2,7 @@ package com.example.patricemp.scrumme;
 
 import android.content.Context;
 import android.os.Parcelable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -11,6 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -23,7 +26,7 @@ import java.util.ArrayList;
  * A placeholder fragment containing a simple view.
  */
 public class MainActivityFragment extends Fragment
-        implements TaskAdapter.TaskClickListener{
+        implements TaskAdapter.TaskClickListener, TaskAdapter.DeleteListener{
 
     private LinearLayoutManager mLayoutManager;
     private TaskAdapter mAdapter;
@@ -32,6 +35,8 @@ public class MainActivityFragment extends Fragment
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mTasksDatabaseReference;
     private ChildEventListener mChildEventListener;
+    private Task mLastDeleted;
+    private FirebaseAuth mFirebaseAuth;
 
 
     public MainActivityFragment() {
@@ -41,7 +46,15 @@ public class MainActivityFragment extends Fragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         mFirebaseDatabase = FirebaseDatabase.getInstance();
-        mTasksDatabaseReference = mFirebaseDatabase.getReference().child("tasks");
+        mFirebaseAuth = FirebaseAuth.getInstance();
+
+        FirebaseUser user = mFirebaseAuth.getCurrentUser();
+        String uid = user.getUid();
+
+        mTasksDatabaseReference = mFirebaseDatabase.getReference()
+                .child("users")
+                .child(uid)
+                .child("tasks");
 
         if(savedInstanceState != null){
             mListState = savedInstanceState.getParcelable("state");
@@ -55,21 +68,35 @@ public class MainActivityFragment extends Fragment
         if(mListState != null){
             mLayoutManager.onRestoreInstanceState(mListState);
         }
-        mAdapter = new TaskAdapter(this);
+        mAdapter = new TaskAdapter(this, this);
         mAdapter.clearTasks();
         mChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Task task = dataSnapshot.getValue(Task.class);
+                String key = dataSnapshot.getKey();
+                task.setDatabaseKey(key);
                 mAdapter.addTask(task);
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Task task = dataSnapshot.getValue(Task.class);
+                mAdapter.modifyTask(task);
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
+                Snackbar snacker = Snackbar.make(getActivity().findViewById(android.R.id.content),
+                        R.string.removed_task, Snackbar.LENGTH_LONG);
+                snacker.setAction(R.string.undo_remove, new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                mTasksDatabaseReference.push().setValue(mLastDeleted);
+                            }
+                        }
+                );
+                snacker.show();
             }
 
             @Override
@@ -87,8 +114,14 @@ public class MainActivityFragment extends Fragment
     }
 
     @Override
-    public void onTaskClick(Task task) {
+    public void onTaskClick(Task task, View view) {
         mCallback.OnTaskSelected(task);
+    }
+
+    @Override
+    public void onDeleteClick(Task task) {
+        mTasksDatabaseReference.child(task.getDatabaseKey()).removeValue();
+        mLastDeleted = task;
     }
 
     public interface OnTaskClickListener{

@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -15,31 +16,48 @@ import java.util.ArrayList;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
     final private TaskClickListener mOnTaskClick;
+    final private DeleteListener mOnDeleteClick;
     private ArrayList<Task> mTaskList;
     private Context mContext;
 
-    public TaskAdapter(TaskClickListener clickListener) {
+    public TaskAdapter(TaskClickListener clickListener, DeleteListener deleteListener) {
         mOnTaskClick = clickListener;
+        mOnDeleteClick = deleteListener;
     }
 
     public interface TaskClickListener {
-        void onTaskClick(Task task);
+        void onTaskClick(Task task, View view);
     }
+
+    public interface DeleteListener{
+        void onDeleteClick(Task task);
+    }
+
 
     class TaskViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         TextView descriptionView;
         TextView effortView;
+        Button deleteButton;
 
         public TaskViewHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
+            deleteButton = itemView.findViewById(R.id.card_button_delete);
+            deleteButton.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v) {
+                    int clickedPosition = getAdapterPosition();
+                    Task task = mTaskList.get(clickedPosition);
+                    mOnDeleteClick.onDeleteClick(task);
+                    mTaskList.remove(clickedPosition);
+                    notifyItemRemoved(clickedPosition);
+                }
+            });
             descriptionView = itemView.findViewById(R.id.tv_card_description);
             effortView = itemView.findViewById(R.id.tv_card_effort);
         }
 
         void bind(Task task){
-//            descriptionView.setText("Oh Hai");
-//            effortView.setText("2");
             if(task != null){
                 String description = task.getDescription();
                 if(description != null && !description.isEmpty()){
@@ -54,9 +72,11 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
 
         @Override
         public void onClick(View view) {
+
             int clickedPosition = getAdapterPosition();
+
             Task task = mTaskList.get(clickedPosition);
-            mOnTaskClick.onTaskClick(task);
+            mOnTaskClick.onTaskClick(task, view);
         }
     }
 
@@ -94,13 +114,9 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     }
 
     public void addTask(Task task){
-        int currentSize = 0;
-        if(mTaskList != null){
-            currentSize = mTaskList.size();
-        }else{
+        if(mTaskList == null){
             mTaskList = new ArrayList<Task>(0);
         }
-
         mTaskList.add(task);
         notifyDataSetChanged();
     }
@@ -111,6 +127,15 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             int currentSize = mTaskList.size();
             mTaskList.clear();
             notifyItemRangeRemoved(0, currentSize);
+        }
+    }
+    public void modifyTask(Task task){
+        if(task != null){
+            if(mTaskList.contains(task)){
+                int index = mTaskList.indexOf(task);
+                mTaskList.remove(index);
+                mTaskList.add(index, task);
+            }
         }
     }
 }

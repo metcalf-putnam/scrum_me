@@ -10,8 +10,12 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Switch;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
+import java.lang.reflect.Array;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -25,6 +29,7 @@ public class AddTaskActivity extends AppCompatActivity {
     @BindView(R.id.switch_in_sprint) Switch inSprintSwitch;
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mTasksDatabaseReference;
+    private FirebaseAuth mFirebaseAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +38,23 @@ public class AddTaskActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         mFirebaseDatabase = FirebaseDatabase.getInstance();
-        mTasksDatabaseReference = mFirebaseDatabase.getReference().child("tasks");
+        mFirebaseAuth = FirebaseAuth.getInstance();
+
+        FirebaseUser user = mFirebaseAuth.getCurrentUser();
+        String uid = user.getUid();
+
+        mTasksDatabaseReference = mFirebaseDatabase.getReference()
+                .child("users")
+                .child(uid)
+                .child("tasks");
+
+        Intent intent = getIntent();
+        if(intent != null){
+            if(intent.hasExtra("task")){
+                Task task = intent.getParcelableExtra("task");
+            }
+
+        }
 
         if(savedInstanceState != null){
             Task task = savedInstanceState.getParcelable("task");
@@ -52,7 +73,7 @@ public class AddTaskActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Task task = getTask();
                 Intent intent = new Intent(getBaseContext(), MainActivity.class);
-                intent.putExtra("task", task);
+                intent.putExtra("task", task); //if is modify, should modify, not push new
                 mTasksDatabaseReference.push().setValue(task);
                 startActivity(intent);
             }
@@ -75,5 +96,14 @@ public class AddTaskActivity extends AppCompatActivity {
         outState.putParcelable("task", getTask());
         outState.putInt("effort_position", effortIn.getSelectedItemPosition());
         outState.putInt("importance_position", importanceIn.getSelectedItemPosition());
+    }
+
+    private void fillOutData(Task task){
+        //Array stringArray = R.string.task_importance;
+        descriptionIn.setText(task.getDescription());
+        notesIn.setText(task.getNotes());
+        //effortIn.setSelection(effortPosition);
+        //importanceIn.setSelection(importancePosition);
+        inSprintSwitch.setChecked(task.getInSprint());
     }
 }

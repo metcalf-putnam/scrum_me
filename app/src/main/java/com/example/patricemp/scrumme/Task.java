@@ -13,7 +13,9 @@ public class Task implements Parcelable {
     private String importance;
     private String notes;
     private boolean inSprint;
+    private boolean completed;
     private String group;
+    private String databaseKey;
 
     public static final Parcelable.Creator<Task> CREATOR
             = new Parcelable.Creator<Task>() {
@@ -34,7 +36,9 @@ public class Task implements Parcelable {
         importance = in.readString();
         notes = in.readString();
         inSprint = (Boolean) in.readValue(null);
+        completed = (Boolean) in.readValue(null);
         group = in.readString();
+        databaseKey = in.readString();
     }
 
     public void setDescription(String desc){
@@ -52,8 +56,14 @@ public class Task implements Parcelable {
     public void setInSprint(boolean boo){
         inSprint = boo;
     }
+    public void setCompleted(boolean boo) {
+        completed = boo;
+    }
     public void setGroup(String g){
         group = g;
+    }
+    public void setDatabaseKey(String k){
+        databaseKey = k;
     }
 
     public String getDescription(){
@@ -71,8 +81,14 @@ public class Task implements Parcelable {
     public boolean getInSprint(){
         return inSprint;
     }
+    public boolean getCompleted(){
+        return completed;
+    }
     public String getGroup(){
         return group;
+    }
+    public String getDatabaseKey(){
+        return databaseKey;
     }
 
     @Override
@@ -87,6 +103,8 @@ public class Task implements Parcelable {
         dest.writeString(importance);
         dest.writeString(notes);
         dest.writeValue(inSprint);
+        dest.writeValue(completed);
         dest.writeString(group);
+        dest.writeString(databaseKey);
     }
 }
