@@ -16,6 +16,7 @@
 
     <!-- Add new Task Strings -->
     <string name="new_task_header">Add New Task</string>
+    <string name="modify_task_header">Modify Task</string>
     <string-array name="task_effort">
         <item>1</item>
         <item>2</item>
@@ -37,6 +38,7 @@
 
     <string name="task_in_sprint_switch">Add to sprint?</string>
     <string name="submit">Submit</string>
+    <string name="update">Update</string>
     <string name="cancel">Cancel</string>
     <string name="effort">Effort:</string>
     <string name="importance">Importance:</string>

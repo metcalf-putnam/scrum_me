@@ -102,7 +102,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void OnTaskSelected(Task task) {
-
+        Intent intent = new Intent(this, AddTaskActivity.class);
+        intent.putExtra("task", task);
+        startActivity(intent);
     }
 
 
