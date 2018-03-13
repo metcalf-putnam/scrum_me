@@ -17,12 +17,15 @@ import java.util.ArrayList;
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
     final private TaskClickListener mOnTaskClick;
     final private DeleteListener mOnDeleteClick;
+    final private SprintListener mOnSprintClick;
     private ArrayList<Task> mTaskList;
     private Context mContext;
 
-    public TaskAdapter(TaskClickListener clickListener, DeleteListener deleteListener) {
+    public TaskAdapter(TaskClickListener clickListener, DeleteListener deleteListener,
+                       SprintListener sprintListener) {
         mOnTaskClick = clickListener;
         mOnDeleteClick = deleteListener;
+        mOnSprintClick = sprintListener;
     }
 
     public interface TaskClickListener {
@@ -33,11 +36,16 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         void onDeleteClick(Task task);
     }
 
+    public interface SprintListener{
+        void onSprintClick(Task task);
+    }
+
 
     class TaskViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         TextView descriptionView;
         TextView effortView;
         Button deleteButton;
+        Button sprintButton;
 
         public TaskViewHolder(View itemView) {
             super(itemView);
@@ -49,8 +57,18 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                     int clickedPosition = getAdapterPosition();
                     Task task = mTaskList.get(clickedPosition);
                     mOnDeleteClick.onDeleteClick(task);
-                    mTaskList.remove(clickedPosition);
-                    notifyItemRemoved(clickedPosition);
+                    //mTaskList.remove(clickedPosition);
+                    //notifyItemRemoved(clickedPosition);
+                }
+            });
+            sprintButton = itemView.findViewById(R.id.card_button_add_remove);
+            sprintButton.setOnClickListener(new View.OnClickListener(){
+
+                @Override
+                public void onClick(View v) {
+                    int clickedPosition = getAdapterPosition();
+                    Task task = mTaskList.get(clickedPosition);
+                    mOnSprintClick.onSprintClick(task);
                 }
             });
             descriptionView = itemView.findViewById(R.id.tv_card_description);
@@ -66,6 +84,11 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 int effort = task.getEffort();
                 if(effort > 0){
                     effortView.setText("" + task.getEffort());
+                }
+                if(task.getInSprint()){
+                    sprintButton.setText(R.string.card_remove_from_sprint_text);
+                }else{
+                    sprintButton.setText(R.string.card_add_to_sprint_text);
                 }
             }
         }
@@ -121,6 +144,16 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         notifyDataSetChanged();
     }
 
+    public void deleteTask(Task task){
+        if(mTaskList != null){
+            if(mTaskList.contains(task)){
+                int index = mTaskList.indexOf(task);
+                mTaskList.remove(index);
+                notifyItemRemoved(index);
+            }
+        }
+    }
+
 
     public void clearTasks(){
         if(mTaskList != null){
@@ -130,11 +163,13 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         }
     }
     public void modifyTask(Task task){
-        if(task != null){
-            if(mTaskList.contains(task)){
-                int index = mTaskList.indexOf(task);
-                mTaskList.remove(index);
-                mTaskList.add(index, task);
+        if(task != null && mTaskList != null){
+            for(int i=0; i < mTaskList.size(); i++){
+                if(mTaskList.get(i).getDatabaseKey() == task.getDatabaseKey()){
+                    mTaskList.set(i, task);
+                    notifyItemChanged(i);
+                    break;
+                }
             }
         }
     }

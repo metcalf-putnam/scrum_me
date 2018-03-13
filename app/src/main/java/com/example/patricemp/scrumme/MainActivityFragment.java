@@ -26,7 +26,8 @@ import java.util.ArrayList;
  * A placeholder fragment containing a simple view.
  */
 public class MainActivityFragment extends Fragment
-        implements TaskAdapter.TaskClickListener, TaskAdapter.DeleteListener{
+        implements TaskAdapter.TaskClickListener, TaskAdapter.DeleteListener,
+        TaskAdapter.SprintListener{
 
     private LinearLayoutManager mLayoutManager;
     private TaskAdapter mAdapter;
@@ -58,6 +59,9 @@ public class MainActivityFragment extends Fragment
 
         if(savedInstanceState != null){
             mListState = savedInstanceState.getParcelable("state");
+            if(savedInstanceState.containsKey("lastRemoved")){
+                mLastDeleted = savedInstanceState.getParcelable("lastRemoved");
+            }
         }
         final View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         RecyclerView tasksView = rootView.findViewById(R.id.rv_tasks);
@@ -68,7 +72,7 @@ public class MainActivityFragment extends Fragment
         if(mListState != null){
             mLayoutManager.onRestoreInstanceState(mListState);
         }
-        mAdapter = new TaskAdapter(this, this);
+        mAdapter = new TaskAdapter(this, this, this);
         mAdapter.clearTasks();
         mChildEventListener = new ChildEventListener() {
             @Override
@@ -121,7 +125,18 @@ public class MainActivityFragment extends Fragment
     @Override
     public void onDeleteClick(Task task) {
         mTasksDatabaseReference.child(task.getDatabaseKey()).removeValue();
+        mAdapter.deleteTask(task);
         mLastDeleted = task;
+    }
+
+    @Override
+    public void onSprintClick(Task task) {
+        if(task.getInSprint()){
+            task.setInSprint(false);
+        }else{
+            task.setInSprint(true);
+        }
+        mTasksDatabaseReference.child(task.getDatabaseKey()).setValue(task);
     }
 
     public interface OnTaskClickListener{
@@ -142,5 +157,7 @@ public class MainActivityFragment extends Fragment
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable("state", mListState);
+        outState.putParcelable("lastRemoved", mLastDeleted);
     }
+
 }
