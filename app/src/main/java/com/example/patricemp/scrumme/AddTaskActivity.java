@@ -56,23 +56,21 @@ public class AddTaskActivity extends AppCompatActivity {
                 .child("tasks");
 
         Intent intent = getIntent();
-        if(intent != null){
+        importanceIn.setSelection(3); //sets default importance value to "not important"
+        if(savedInstanceState != null){
+            Task task = savedInstanceState.getParcelable("task");
+            if(task != null){
+                fillOutData(task);
+            }
+        } else if(intent != null){
             if(intent.hasExtra("task")){
                 mTask = intent.getParcelableExtra("task");
                 newTask = false;
                 fillOutData(mTask);
                 updateLabels();
             }
-
         }
 
-        if(savedInstanceState != null){
-            Task task = savedInstanceState.getParcelable("task");
-            if(task != null){
-                fillOutData(task);
-            }
-
-        }
         submitButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 getTask();
@@ -94,7 +92,7 @@ public class AddTaskActivity extends AppCompatActivity {
         }
         mTask.setDescription(descriptionIn.getText().toString());
         mTask.setEffort(Integer.parseInt(effortIn.getSelectedItem().toString()));
-        mTask.setImportance(importanceIn.getSelectedItem().toString());
+        mTask.setImportance(importanceIn.getSelectedItemPosition());
         mTask.setInSprint(inSprintSwitch.isChecked());
         mTask.setNotes(notesIn.getText().toString());
     }
@@ -106,9 +104,7 @@ public class AddTaskActivity extends AppCompatActivity {
     }
 
     private void fillOutData(Task task){
-        List<String> importanceArray = Arrays.asList(getResources()
-                .getStringArray(R.array.task_importance));
-        int importancePosition = importanceArray.indexOf(task.getImportance());
+        int importancePosition = task.getImportance();
         List<String> effortArray = Arrays.asList(getResources()
                 .getStringArray(R.array.task_effort));
         int effortPosition = effortArray.indexOf(Integer.toString(task.getEffort()));

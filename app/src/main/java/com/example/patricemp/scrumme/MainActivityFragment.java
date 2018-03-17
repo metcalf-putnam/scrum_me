@@ -38,6 +38,7 @@ public class MainActivityFragment extends Fragment
     private ChildEventListener mChildEventListener;
     private Task mLastDeleted;
     private FirebaseAuth mFirebaseAuth;
+    private String mOrderBy;
 
 
     public MainActivityFragment() {
@@ -63,6 +64,11 @@ public class MainActivityFragment extends Fragment
                 mLastDeleted = savedInstanceState.getParcelable("lastRemoved");
             }
         }
+        Bundle bundle = getArguments();
+        if(bundle != null){
+            mOrderBy = bundle.getString("orderBy");
+        }
+
         final View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         RecyclerView tasksView = rootView.findViewById(R.id.rv_tasks);
         if(tasksView.getLayoutManager() == null){
@@ -111,7 +117,11 @@ public class MainActivityFragment extends Fragment
             public void onCancelled(DatabaseError databaseError) {
             }
         };
-        mTasksDatabaseReference.addChildEventListener(mChildEventListener);
+        if(mOrderBy != null && !mOrderBy.isEmpty()){
+            mTasksDatabaseReference.orderByChild(mOrderBy).addChildEventListener(mChildEventListener);
+        }else{
+            mTasksDatabaseReference.orderByKey().addChildEventListener(mChildEventListener);
+        }
         tasksView.setAdapter(mAdapter);
         tasksView.setHasFixedSize(true);
         return rootView;

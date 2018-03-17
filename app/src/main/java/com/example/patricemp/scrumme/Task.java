@@ -10,7 +10,7 @@ import android.os.Parcelable;
 public class Task implements Parcelable {
     private String description;
     private int effort;
-    private String importance;
+    private int importance;
     private String notes;
     private boolean inSprint;
     private boolean completed;
@@ -33,7 +33,7 @@ public class Task implements Parcelable {
     private Task(Parcel in){
         description = in.readString();
         effort = in.readInt();
-        importance = in.readString();
+        importance = in.readInt();
         notes = in.readString();
         inSprint = (Boolean) in.readValue(null);
         completed = (Boolean) in.readValue(null);
@@ -47,7 +47,7 @@ public class Task implements Parcelable {
     public void setEffort(int ef){
         effort = ef;
     }
-    public void setImportance(String imp){
+    public void setImportance(int imp){
         importance = imp;
     }
     public void setNotes(String noted){
@@ -72,7 +72,7 @@ public class Task implements Parcelable {
     public int getEffort(){
         return effort;
     }
-    public String getImportance(){
+    public int getImportance(){
         return importance;
     }
     public String getNotes(){
@@ -100,7 +100,7 @@ public class Task implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(description);
         dest.writeInt(effort);
-        dest.writeString(importance);
+        dest.writeInt(importance);
         dest.writeString(notes);
         dest.writeValue(inSprint);
         dest.writeValue(completed);

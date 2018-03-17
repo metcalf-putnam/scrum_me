@@ -3,8 +3,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.patricemp.scrumme.MainActivity">
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/action_importance"
         android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never" />
+        android:title="@string/action_sort_by_importance"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_dateAdded"
+        android:orderInCategory="200"
+        android:title="@string/action_sort_by_date_added"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_inSprint"
+        android:orderInCategory="1"
+        android:title="@string/action_sort_by_in_sprint"
+        app:showAsAction="ifRoom"/>
 </menu>

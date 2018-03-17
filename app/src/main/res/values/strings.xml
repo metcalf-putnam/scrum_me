@@ -2,6 +2,9 @@
     <string name="app_name">Scrum Me</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_settings">Settings</string>
+    <string name="action_sort_by_importance">By Importance</string>
+    <string name="action_sort_by_date_added">By Date Added</string>
+    <string name="action_sort_by_in_sprint">In Sprint</string>
 
     <!-- Adding and Removing Toasts-->
     <string name="removed_task">Removed!</string>
@@ -31,10 +34,10 @@
     </string-array>
 
     <string-array name="task_importance">
-        <item>Not Important</item>
-        <item>Somewhat Important</item>
-        <item>Important</item>
         <item>Critical</item>
+        <item>Important</item>
+        <item>Somewhat Important</item>
+        <item>Not Important</item>
     </string-array>
 
     <string name="task_in_sprint_switch">Add to sprint?</string>

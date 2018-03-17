@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mTasksDatabaseReference;
     private FirebaseAuth mFirebaseAuth;
+    private MainActivityFragment mFragment;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
     public static final int RC_SIGN_IN = 1;
 
@@ -60,6 +61,10 @@ public class MainActivity extends AppCompatActivity
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if(user != null){
                     //signed in
+                    if(mFragment == null){
+                        mFragment = new MainActivityFragment();
+                        getSupportFragmentManager().beginTransaction().add(R.id.fragment, mFragment).commit();
+                    }
                 } else{
                     //not signed in
                     List<AuthUI.IdpConfig> providers = Arrays.asList(
@@ -93,7 +98,25 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_importance) {
+            Bundle bundle = new Bundle();
+            bundle.putString("orderBy", "importance");
+            MainActivityFragment fragment = new MainActivityFragment();
+            fragment.setArguments(bundle);
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment, fragment).commit();
+            return true;
+        }
+        if(id == R.id.action_dateAdded){
+            MainActivityFragment fragment = new MainActivityFragment();
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment, fragment).commit();
+            return true;
+        }
+        if(id == R.id.action_inSprint){
+            Bundle bundle = new Bundle();
+            bundle.putString("orderBy", "inSprint");
+            MainActivityFragment fragment = new MainActivityFragment();
+            fragment.setArguments(bundle);
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment, fragment).commit();
             return true;
         }
 
