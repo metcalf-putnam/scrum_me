@@ -118,7 +118,27 @@ public class MainActivityFragment extends Fragment
             }
         };
         if(mOrderBy != null && !mOrderBy.isEmpty()){
-            mTasksDatabaseReference.orderByChild(mOrderBy).addChildEventListener(mChildEventListener);
+            switch (mOrderBy){
+                case "inSprint":
+                    mTasksDatabaseReference
+                            .orderByChild(mOrderBy)
+                            .equalTo(true)
+                            .addChildEventListener(mChildEventListener);
+                    break;
+                case "importance":
+                    mTasksDatabaseReference
+                            .orderByChild(mOrderBy)
+                            .addChildEventListener(mChildEventListener);
+                    break;
+
+                default:
+                    mTasksDatabaseReference
+                            .orderByKey()
+                            .addChildEventListener(mChildEventListener);
+                    break;
+            }
+
+
         }else{
             mTasksDatabaseReference.orderByKey().addChildEventListener(mChildEventListener);
         }

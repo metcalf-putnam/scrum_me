@@ -57,12 +57,8 @@ public class AddTaskActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         importanceIn.setSelection(3); //sets default importance value to "not important"
-        if(savedInstanceState != null){
-            Task task = savedInstanceState.getParcelable("task");
-            if(task != null){
-                fillOutData(task);
-            }
-        } else if(intent != null){
+
+        if(intent != null){
             if(intent.hasExtra("task")){
                 mTask = intent.getParcelableExtra("task");
                 newTask = false;
@@ -99,8 +95,19 @@ public class AddTaskActivity extends AppCompatActivity {
 
     @Override
     public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
         outState.putParcelable("task", mTask);
+        super.onSaveInstanceState(outState, outPersistentState);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState, PersistableBundle persistentState) {
+        super.onRestoreInstanceState(savedInstanceState, persistentState);
+        if(savedInstanceState != null && savedInstanceState.containsKey("task")) {
+            Task task = savedInstanceState.getParcelable("task");
+            if (task != null) {
+                fillOutData(task);
+            }
+        }
     }
 
     private void fillOutData(Task task){

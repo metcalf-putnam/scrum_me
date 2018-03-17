@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
         mFirebaseDatabase = FirebaseDatabase.getInstance();
         mFirebaseAuth = FirebaseAuth.getInstance();
         mTasksDatabaseReference = mFirebaseDatabase.getReference().child("tasks");
@@ -61,10 +62,14 @@ public class MainActivity extends AppCompatActivity
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if(user != null){
                     //signed in
+                    mFragment = (MainActivityFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
                     if(mFragment == null){
                         mFragment = new MainActivityFragment();
-                        getSupportFragmentManager().beginTransaction().add(R.id.fragment, mFragment).commit();
+                        getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.fragment, mFragment)
+                                .commit();
                     }
+
                 } else{
                     //not signed in
                     List<AuthUI.IdpConfig> providers = Arrays.asList(
@@ -107,6 +112,7 @@ public class MainActivity extends AppCompatActivity
             return true;
         }
         if(id == R.id.action_dateAdded){
+            //default is to order by date added
             MainActivityFragment fragment = new MainActivityFragment();
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment, fragment).commit();
             return true;
@@ -134,6 +140,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
         super.onSaveInstanceState(outState, outPersistentState);
+        //getSupportFragmentManager().beginTransaction().remove(mFragment).commit();
     }
 
     @Override
