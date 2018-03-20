@@ -1,7 +1,10 @@
 package com.example.patricemp.scrumme;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Parcelable;
+import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -58,6 +61,7 @@ public class MainActivityFragment extends Fragment
                 .child(uid)
                 .child("tasks");
 
+
         if(savedInstanceState != null){
             mListState = savedInstanceState.getParcelable("state");
             if(savedInstanceState.containsKey("lastRemoved")){
@@ -97,16 +101,20 @@ public class MainActivityFragment extends Fragment
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Snackbar snacker = Snackbar.make(getActivity().findViewById(android.R.id.content),
-                        R.string.removed_task, Snackbar.LENGTH_LONG);
-                snacker.setAction(R.string.undo_remove, new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                mTasksDatabaseReference.push().setValue(mLastDeleted);
+
+                if(getActivity() != null){
+                    Snackbar snacker = Snackbar.make(getActivity().findViewById(R.id.cl_main),
+                            R.string.removed_task, Snackbar.LENGTH_LONG);
+                    snacker.setAction(R.string.undo_remove, new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    mTasksDatabaseReference.push().setValue(mLastDeleted);
+                                }
                             }
-                        }
-                );
-                snacker.show();
+                    );
+                    snacker.show();
+                }
+
             }
 
             @Override
@@ -190,4 +198,18 @@ public class MainActivityFragment extends Fragment
         outState.putParcelable("lastRemoved", mLastDeleted);
     }
 
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(getActivity().getBaseContext(), AddTaskActivity.class);
+                    startActivity(intent);
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+                }
+        });
+    }
 }

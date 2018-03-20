@@ -5,6 +5,10 @@
     <string name="action_sort_by_importance">By Importance</string>
     <string name="action_sort_by_date_added">By Date Added</string>
     <string name="action_sort_by_in_sprint">In Sprint</string>
+    <string name="sprint_title">Sprint # </string>
+    <string name="start_sprint">Start Sprint!</string>
+    <string name="points_in_sprint_label">In Sprint:</string>
+    <string name="average_points_label">Average:</string>
 
     <!-- Adding and Removing Toasts-->
     <string name="removed_task">Removed!</string>
@@ -104,6 +108,12 @@
         <item>1</item>
         <item>2</item>
         <item>3</item>
+    </string-array>
+    <string-array name="sprint_length_entries">
+        <item>1 week sprint</item>
+        <item>2 week sprint</item>
+        <item>3 week sprint</item>
+        <item>4 week sprint</item>
     </string-array>
 
     <string-array name="multi_select_list_preference_default_value" />

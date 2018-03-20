@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:id="@+id/cl_main"
     android:layout_height="match_parent"
     tools:context="com.example.patricemp.scrumme.MainActivity"
     android:fitsSystemWindows="true">
@@ -18,8 +19,13 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fitsSystemWindows="true"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            app:layout_scrollFlags="scroll|exitUntilCollapsed|enterAlways">
 
+            <include layout="@layout/sprint_progress"
+                android:layout_height="match_parent"
+                android:layout_width="match_parent"
+                android:layout_marginTop="?attr/actionBarSize"
+                app:layout_collapseMode="parallax"/>
 
             <android.support.v7.widget.Toolbar
                 app:title=" "
@@ -34,6 +40,8 @@
             <ImageView
                 android:id="@+id/imageView"
                 android:layout_width="wrap_content"
+                android:layout_marginLeft="4dp"
+                android:layout_marginTop="2dp"
                 android:layout_height="wrap_content"
                 android:fitsSystemWindows="true"
                 android:scaleType="centerCrop"
@@ -44,9 +52,7 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_main" />
-
-
+    <include layout="@layout/fragment_main" />
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
