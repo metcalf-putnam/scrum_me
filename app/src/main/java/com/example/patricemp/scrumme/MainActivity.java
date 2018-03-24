@@ -10,11 +10,13 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Layout;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
 import com.github.mikephil.charting.charts.LineChart;
@@ -38,7 +40,8 @@ import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
-        implements MainActivityFragment.OnTaskClickListener{
+        implements MainActivityFragment.onTaskClickListener, MainActivityFragment.checkInSprint,
+        MainActivityFragment.getSprint, MainActivityFragment.getSprintNum{
 
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mSprintDatabaseReference;
@@ -49,8 +52,10 @@ public class MainActivity extends AppCompatActivity
     private ValueEventListener mSprintInProgressListener;
     private ValueEventListener mSprintStatusListener;
     private Sprint mSprint;
+    private String mSetting;
     private boolean mSprintInProgress;
     private Long mCurrentSprint;
+    private String mUid;
     public static final int RC_SIGN_IN = 1;
 
     @Override
@@ -66,18 +71,32 @@ public class MainActivity extends AppCompatActivity
         sprintButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mSprint != null){
-                    if(!mSprintInProgress){
+                if(mSprint != null && mSprint.getCurrentEffortPoints() > 0){
+                    Date date = new Date();
+                    if(!mSprintInProgress){ //starting new sprint
                         mSprintStatusDatabaseReference.child("sprintInProgress").setValue(true);
-                        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-                        //set sprint start and end dates in Sprint
+                        mSprint.setSprintStart(date);
+                        int points = mSprint.getCurrentEffortPoints();
+                        mSprint.setStartingEffortPoints(points);
+                        mSprintDatabaseReference.setValue(mSprint);
+                        updateButton();
                     }else{ //ending sprint
                         mSprintDatabaseReference.removeEventListener(mSprintInProgressListener);
-                        mSprintStatusDatabaseReference.child("sprintInProgress").setValue(false);
+                        mSprintInProgressListener = null;
                         mCurrentSprint = mCurrentSprint + 1;
+                        mSprintStatusDatabaseReference.child("sprintInProgress").setValue(false);
                         mSprintStatusDatabaseReference.child("currentSprint").setValue(mCurrentSprint);
+                        mSprint.setSprintEnd(date);
+                        mSprintDatabaseReference.setValue(mSprint);
                         mSprint = null;
+                        ArrayList<Task> list = mFragment.getTaskList();
+                        resetTasks(mCurrentSprint-1, list);
+                        updateButton();
+                        updateSprintUI();
                     }
+                }else{
+                    Toast.makeText(getBaseContext(), "Can't start a sprint without tasks!",
+                            Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -92,14 +111,19 @@ public class MainActivity extends AppCompatActivity
                     mFragment = (MainActivityFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
                     if(mFragment == null){
                         mFragment = new MainActivityFragment();
+                        mSetting = "dateAdded";
+                        updateButton();
                         getSupportFragmentManager().beginTransaction()
                                 .replace(R.id.fragment, mFragment)
                                 .commit();
                     }
-                    String uid = user.getUid();
-                    getSprintStatus(uid);
+                    mUid = user.getUid();
+                    if(mSprintStatusListener == null){
+                        getSprintStatus();
+                    }
 
                 } else{
+                    mUid = null;
                     //not signed in
                     List<AuthUI.IdpConfig> providers = Arrays.asList(
                             new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
@@ -138,12 +162,16 @@ public class MainActivity extends AppCompatActivity
             MainActivityFragment fragment = new MainActivityFragment();
             fragment.setArguments(bundle);
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment, fragment).commit();
+            mSetting = "importance";
+            updateButton();
             return true;
         }
         if(id == R.id.action_dateAdded){
             //default is to order by date added
             MainActivityFragment fragment = new MainActivityFragment();
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment, fragment).commit();
+            mSetting = "dateAdded";
+            updateButton();
             return true;
         }
         if(id == R.id.action_inSprint){
@@ -152,22 +180,51 @@ public class MainActivity extends AppCompatActivity
             MainActivityFragment fragment = new MainActivityFragment();
             fragment.setArguments(bundle);
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment, fragment).commit();
+            mSetting = "inSprint";
+            updateButton();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    private void getSprintStatus(final String uid){
+    private void resetTasks(Long sprintNum, ArrayList<Task> tasks){
+        DatabaseReference reference = mFirebaseDatabase.getReference()
+                .child("users")
+                .child(mUid)
+                .child("tasks");
+        for(Task task : tasks){
+            if(task.getCompleted()){
+                task.setSprintNum(sprintNum.intValue());
+                reference.child(task.getDatabaseKey()).setValue(task);
+            }else if(task.getInSprint()){
+                task.setInSprint(false);
+                reference.child(task.getDatabaseKey()).setValue(task);
+            }
+        }
+        //if isCompleted, set sprintNum
+        //if is not, remove inSprint value
+    }
+
+    private void updateButton(){
+        Button sprintButton = findViewById(R.id.button_sprint);
+        if(mSprint != null && mSprint.getCurrentEffortPoints() > 0){
+            if(mSprintInProgress){
+                sprintButton.setText(R.string.end_sprint);
+            }else{
+                sprintButton.setText(R.string.start_sprint);
+            }
+        }else{
+            sprintButton.setText(R.string.plan_sprint);
+        }
+
+    }
+    private void getSprintStatus(){
 
         mSprintStatusDatabaseReference = mFirebaseDatabase.getReference()
                                                           .child("users")
-                                                          .child(uid)
+                                                          .child(mUid)
                                                           .child("sprint_status");
-        mSprintDatabaseReference = mFirebaseDatabase.getReference()
-                                                    .child("users")
-                                                    .child(uid)
-                                                    .child("sprints");
 
         mSprintStatusListener = new ValueEventListener() {
             @Override
@@ -176,15 +233,24 @@ public class MainActivity extends AppCompatActivity
                     if(dataSnapshot.hasChild("sprintInProgress")){
                         mSprintInProgress = (Boolean) dataSnapshot.child("sprintInProgress").getValue();
                         updateSprintUI();
+                        updateButton();
                     }
                     if(dataSnapshot.hasChild("currentSprint")){
                         mCurrentSprint = (Long) dataSnapshot.child("currentSprint").getValue();
+                        if(mSprintInProgressListener != null){
+                            mSprintDatabaseReference.removeEventListener(mSprintInProgressListener);
+                        }
+                        if(mCurrentSprint != null){
+                            setUpSprintListener(Long.toString(mCurrentSprint));
+                        }
                         updateSprintUI();
+                        updateButton();
                     }
                 }else{
                     mSprintStatusDatabaseReference.child("sprintInProgress").setValue(false);
-                    mSprintStatusDatabaseReference.child("currentSprint").setValue(0);
-                    setUpSprintListener(uid, "0");
+                    mSprintStatusDatabaseReference.child("currentSprint").setValue(1);
+                    setUpSprintListener("0");
+
                 }
 
             }
@@ -197,10 +263,10 @@ public class MainActivity extends AppCompatActivity
         mSprintStatusDatabaseReference.addValueEventListener(mSprintStatusListener);
     }
 
-    private void setUpSprintListener(String uid, @Nullable String sprintNum){
+    private void setUpSprintListener(String sprintNum){
         mSprintDatabaseReference = mFirebaseDatabase.getReference()
                 .child("users")
-                .child(uid)
+                .child(mUid)
                 .child("sprints");
 
         if(sprintNum != null && !sprintNum.isEmpty()){
@@ -214,6 +280,7 @@ public class MainActivity extends AppCompatActivity
                 if(dataSnapshot != null){
                     mSprint = dataSnapshot.getValue(Sprint.class);
                     updateSprintUI();
+                    updateButton();
                 }
             }
 
@@ -222,29 +289,40 @@ public class MainActivity extends AppCompatActivity
 
             }
         };
-
+        mSprintDatabaseReference.addValueEventListener(mSprintInProgressListener);
 
     }
 
     private void updateSprintUI(){
-        TextView sprintPoints = findViewById(R.id.tv_sprint_points);
-        TextView sprintNum = findViewById(R.id.tv_sprint_number);
-        if(mSprint != null){
-            if(mSprint.getStartingEffortPoints() >= 0){
-                String startingPoints = Integer.toString(mSprint.getStartingEffortPoints());
-                sprintPoints.setText(startingPoints);
-            }
+        View planning = findViewById(R.id.sprint_planning);
+        View inProgress = findViewById(R.id.sprint_in_progress);
+        if(mSprintInProgress){
+            planning.setVisibility(View.INVISIBLE);
+            inProgress.setVisibility(View.VISIBLE);
         }else{
-            sprintPoints.setText("N/A");
+            inProgress.setVisibility(View.INVISIBLE);
+            planning.setVisibility(View.VISIBLE);
+
+            TextView sprintPoints = findViewById(R.id.tv_sprint_points);
+            TextView sprintNum = findViewById(R.id.tv_sprint_number);
+            if(mSprint != null){
+                if(mSprint.getCurrentEffortPoints() >= 0){
+                    String points = Integer.toString(mSprint.getCurrentEffortPoints());
+                    sprintPoints.setText(points);
+                }
+            }else{
+                sprintPoints.setText("N/A");
+            }
+            if(mCurrentSprint != null){
+                String num = Long.toString(mCurrentSprint);
+                sprintNum.setText(num);
+            }
         }
-        if(mCurrentSprint != null){
-            String num = Long.toString(mCurrentSprint);
-            sprintNum.setText(num);
-        }
+
     }
 
     @Override
-    public void OnTaskSelected(Task task) {
+    public void onTaskSelected(Task task) {
         Intent intent = new Intent(this, AddTaskActivity.class);
         intent.putExtra("task", task);
         startActivity(intent);
@@ -263,6 +341,12 @@ public class MainActivity extends AppCompatActivity
         if(mAuthStateListener != null){
             mFirebaseAuth.addAuthStateListener(mAuthStateListener);
         }
+        if(mSprintInProgressListener != null){
+            mSprintDatabaseReference.addValueEventListener(mSprintInProgressListener);
+        }
+        if(mSprintStatusListener != null){
+            mSprintStatusDatabaseReference.addValueEventListener(mSprintStatusListener);
+        }
 
     }
 
@@ -272,5 +356,26 @@ public class MainActivity extends AppCompatActivity
         if(mAuthStateListener != null){
             mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
         }
+        if(mSprintInProgressListener != null){
+            mSprintDatabaseReference.removeEventListener(mSprintInProgressListener);
+        }
+        if(mSprintStatusListener != null){
+            mSprintStatusDatabaseReference.removeEventListener(mSprintStatusListener);
+        }
+    }
+
+    @Override
+    public boolean isInSprint() {
+        return mSprintInProgress;
+    }
+
+    @Override
+    public Sprint currentSprint() {
+        return mSprint;
+    }
+
+    @Override
+    public Long getSprintNum() {
+        return mCurrentSprint;
     }
 }

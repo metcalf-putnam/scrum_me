@@ -17,7 +17,15 @@ public class Sprint implements Parcelable{
     private int completedEffortPoints;
     private int effortPointsAdded;
     private int effortPointsSubtracted;
+    private int currentEffortPoints;
 
+    public int getCurrentEffortPoints() {
+        return currentEffortPoints;
+    }
+
+    public void setCurrentEffortPoints(int currentEffortPoints) {
+        this.currentEffortPoints = currentEffortPoints;
+    }
 
     public Date getSprintStart() {
         return sprintStart;
@@ -87,6 +95,7 @@ public class Sprint implements Parcelable{
         completedEffortPoints = in.readInt();
         effortPointsAdded = in.readInt();
         effortPointsSubtracted = in.readInt();
+        currentEffortPoints = in.readInt();
     }
 
     @Override
@@ -102,5 +111,6 @@ public class Sprint implements Parcelable{
         dest.writeInt(completedEffortPoints);
         dest.writeInt(effortPointsAdded);
         dest.writeInt(effortPointsSubtracted);
+        dest.writeInt(currentEffortPoints);
     }
 }

@@ -7,8 +7,17 @@
     <string name="action_sort_by_in_sprint">In Sprint</string>
     <string name="sprint_title">Sprint # </string>
     <string name="start_sprint">Start Sprint!</string>
+    <string name="plan_sprint">(add tasks to sprint)</string>
+    <string name="end_sprint">Finish Sprint!</string>
     <string name="points_in_sprint_label">In Sprint:</string>
     <string name="average_points_label">Average:</string>
+    <string name="sprint_progress_good">Ahead of schedule!</string>
+    <string name="sprint_progress_bad">Oh no, behind schedule :(</string>
+    <string name="sprint_progress_on_track">On track!</string>
+    <string name="example_start_date">March 23rd</string>
+    <string name="example_end_date">March 30th</string>
+    <string name="example_points_ratio">12/46</string>
+    <string name="date_separator">—</string>
 
     <!-- Adding and Removing Toasts-->
     <string name="removed_task">Removed!</string>
@@ -21,6 +30,7 @@
     <string name="card_remove_from_sprint_text">-Sprint</string>
     <string name="card_delete_task">Delete</string>
     <string name="card_mark_complete">Complete</string>
+    <string name="card_undo_complete">Undo Complete</string>
 
     <!-- Add new Task Strings -->
     <string name="new_task_header">Add New Task</string>

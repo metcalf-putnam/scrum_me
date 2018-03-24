@@ -3,6 +3,8 @@ package com.example.patricemp.scrumme;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.Date;
+
 /**
  * Created by patricemp on 2/18/18.
  */
@@ -16,6 +18,18 @@ public class Task implements Parcelable {
     private boolean completed;
     private String group;
     private String databaseKey;
+    private int sprintNum;
+    private Date dateCompleted;
+
+    public Date getDateCompleted() {
+        return dateCompleted;
+    }
+
+    public void setDateCompleted(Date dateCompleted) {
+        this.dateCompleted = dateCompleted;
+    }
+
+
 
     public static final Parcelable.Creator<Task> CREATOR
             = new Parcelable.Creator<Task>() {
@@ -39,6 +53,8 @@ public class Task implements Parcelable {
         completed = (Boolean) in.readValue(null);
         group = in.readString();
         databaseKey = in.readString();
+        sprintNum = in.readInt();
+        dateCompleted = new Date(in.readLong());
     }
 
     public void setDescription(String desc){
@@ -90,6 +106,13 @@ public class Task implements Parcelable {
     public String getDatabaseKey(){
         return databaseKey;
     }
+    public int getSprintNum() {
+        return sprintNum;
+    }
+
+    public void setSprintNum(int sprintNum) {
+        this.sprintNum = sprintNum;
+    }
 
     @Override
     public int describeContents() {
@@ -106,5 +129,9 @@ public class Task implements Parcelable {
         dest.writeValue(completed);
         dest.writeString(group);
         dest.writeString(databaseKey);
+        dest.writeInt(sprintNum);
+        if(dateCompleted!= null){
+            dest.writeLong(dateCompleted.getTime());
+        }
     }
 }
