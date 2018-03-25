@@ -139,4 +139,12 @@
     <string name="pref_ringtone_silent">Silent</string>
 
     <string name="pref_title_vibrate">Vibrate</string>
+    <!-- Dialog Strings -->
+    <string name="dialog_starting_effort_label">Starting:</string>
+    <string name="dialog_starting_effort_example">46</string>
+    <string name="dialog_ending_effort_label">Ending:</string>
+    <string name="dialog_ending_effort_example">52</string>
+    <string name="dialog_completed_effort_label">Completed:</string>
+    <string name="dialog_completed_effort_example">48</string>
+    <string name="dialog_sprint_complete">Complete!</string>
 </resources>

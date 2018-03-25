@@ -290,7 +290,7 @@ public class MainActivityFragment extends Fragment
             public void onCancelled(DatabaseError databaseError) {
             }
         };
-        mOrderBy="inSprint";
+
         if(mOrderBy != null && !mOrderBy.isEmpty()){
             switch (mOrderBy){
                 case "inSprint":
@@ -325,7 +325,7 @@ public class MainActivityFragment extends Fragment
     public void onPause() {
         super.onPause();
         if(mChildEventListener != null){
-            mTasksDatabaseReference.removeEventListener(mChildEventListener);
+//            mTasksDatabaseReference.removeEventListener(mChildEventListener);
         }
     }
 
@@ -333,9 +333,9 @@ public class MainActivityFragment extends Fragment
     public void onResume() {
         super.onResume();
         if(mChildEventListener != null){
-            mAdapter.clearTasks();
-            mTasksDatabaseReference.removeEventListener(mChildEventListener);
-            mTasksDatabaseReference.addChildEventListener(mChildEventListener);
+//            mAdapter.clearTasks();
+//            mTasksDatabaseReference.removeEventListener(mChildEventListener);
+//            mTasksDatabaseReference.addChildEventListener(mChildEventListener);
         }
     }
 }
