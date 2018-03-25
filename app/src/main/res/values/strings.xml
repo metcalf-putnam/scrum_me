@@ -30,7 +30,7 @@
     <string name="card_remove_from_sprint_text">-Sprint</string>
     <string name="card_delete_task">Delete</string>
     <string name="card_mark_complete">Complete</string>
-    <string name="card_undo_complete">Undo Complete</string>
+    <string name="card_undo_complete">Undo</string>
 
     <!-- Add new Task Strings -->
     <string name="new_task_header">Add New Task</string>

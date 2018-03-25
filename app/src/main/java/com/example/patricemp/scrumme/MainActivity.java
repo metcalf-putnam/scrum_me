@@ -6,15 +6,21 @@ import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Layout;
+import android.text.format.DateUtils;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,6 +38,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.lang.reflect.Array;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,11 +60,11 @@ public class MainActivity extends AppCompatActivity
     private ValueEventListener mSprintInProgressListener;
     private ValueEventListener mSprintStatusListener;
     private Sprint mSprint;
-    private String mSetting;
     private boolean mSprintInProgress;
     private Long mCurrentSprint;
     private String mUid;
     public static final int RC_SIGN_IN = 1;
+    private static final long WEEK = 3600*1000*168;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +84,15 @@ public class MainActivity extends AppCompatActivity
                     if(!mSprintInProgress){ //starting new sprint
                         mSprintStatusDatabaseReference.child("sprintInProgress").setValue(true);
                         mSprint.setSprintStart(date);
+
+                        //setting planned endDate for tracking purposes
+                        Spinner spinner = findViewById(R.id.spinner_sprint_length);
+                        int lengthSelection = spinner.getSelectedItemPosition();
+                        String[] lengths = getResources().getStringArray(R.array.sprint_length_entries);
+                        int numWeeks = Integer.parseInt(lengths[lengthSelection].substring(0,1));
+                        Date endDate = new Date(date.getTime() + WEEK*numWeeks); //168 hours in a week
+                        mSprint.setSprintEnd(endDate);
+
                         int points = mSprint.getCurrentEffortPoints();
                         mSprint.setStartingEffortPoints(points);
                         mSprintDatabaseReference.setValue(mSprint);
@@ -83,16 +100,32 @@ public class MainActivity extends AppCompatActivity
                     }else{ //ending sprint
                         mSprintDatabaseReference.removeEventListener(mSprintInProgressListener);
                         mSprintInProgressListener = null;
+
+                        //update sprintValues
                         mCurrentSprint = mCurrentSprint + 1;
                         mSprintStatusDatabaseReference.child("sprintInProgress").setValue(false);
                         mSprintStatusDatabaseReference.child("currentSprint").setValue(mCurrentSprint);
                         mSprint.setSprintEnd(date);
                         mSprintDatabaseReference.setValue(mSprint);
-                        mSprint = null;
+
+                        //show dialog
                         ArrayList<Task> list = mFragment.getTaskList();
+                        FragmentManager fm = getFragmentManager();
+                        FinishSprintDialogFragment dialog = new FinishSprintDialogFragment();
+                        Bundle bundle = new Bundle();
+                        bundle.putParcelable("sprint", mSprint);
+                        bundle.putParcelableArrayList("tasks", list);
+                        dialog.setArguments(bundle);
+                        dialog.setCancelable(true);
+                        dialog.show(fm, "Results");
+                        getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT);
+
+
+                       //reset
+                        mSprint = null;
                         resetTasks(mCurrentSprint-1, list);
-                        updateButton();
-                        updateSprintUI();
+                        newFragment("importance");
                     }
                 }else{
                     Toast.makeText(getBaseContext(), "Can't start a sprint without tasks!",
@@ -108,16 +141,11 @@ public class MainActivity extends AppCompatActivity
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if(user != null){
                     //signed in
-                    mFragment = (MainActivityFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
-                    if(mFragment == null){
-                        mFragment = new MainActivityFragment();
-                        mSetting = "dateAdded";
-                        updateButton();
-                        getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.fragment, mFragment)
-                                .commit();
-                    }
                     mUid = user.getUid();
+                    if(mFragment == null){
+                        newFragment("importance");
+                    }
+
                     if(mSprintStatusListener == null){
                         getSprintStatus();
                     }
@@ -157,51 +185,55 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_importance) {
-            Bundle bundle = new Bundle();
-            bundle.putString("orderBy", "importance");
-            MainActivityFragment fragment = new MainActivityFragment();
-            fragment.setArguments(bundle);
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment, fragment).commit();
-            mSetting = "importance";
-            updateButton();
+            newFragment("importance");
             return true;
         }
         if(id == R.id.action_dateAdded){
-            //default is to order by date added
-            MainActivityFragment fragment = new MainActivityFragment();
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment, fragment).commit();
-            mSetting = "dateAdded";
-            updateButton();
+            newFragment(""); //default is to order by date added
             return true;
         }
         if(id == R.id.action_inSprint){
-            Bundle bundle = new Bundle();
-            bundle.putString("orderBy", "inSprint");
-            MainActivityFragment fragment = new MainActivityFragment();
-            fragment.setArguments(bundle);
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment, fragment).commit();
-            mSetting = "inSprint";
-            updateButton();
+            newFragment("inSprint");
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
+    private void newFragment(String order){
+        if(!isFinishing()) {
+            Bundle bundle = new Bundle();
+            bundle.putString("orderBy", order);
+            mFragment = new MainActivityFragment();
+            mFragment.setArguments(bundle);
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment, mFragment).commit();
+            updateSprintUI();
+        }else {
+
+        }
+    }
 
     private void resetTasks(Long sprintNum, ArrayList<Task> tasks){
-        DatabaseReference reference = mFirebaseDatabase.getReference()
+        DatabaseReference currentReference = mFirebaseDatabase.getReference()
                 .child("users")
                 .child(mUid)
                 .child("tasks");
-        for(Task task : tasks){
-            if(task.getCompleted()){
-                task.setSprintNum(sprintNum.intValue());
-                reference.child(task.getDatabaseKey()).setValue(task);
-            }else if(task.getInSprint()){
-                task.setInSprint(false);
-                reference.child(task.getDatabaseKey()).setValue(task);
+        DatabaseReference archivedReference = mFirebaseDatabase.getReference()
+                .child("users")
+                .child(mUid)
+                .child("task_archive");
+        if(tasks != null){
+            for(Task task : tasks){
+                if(task.getCompleted()){
+                    task.setSprintNum(sprintNum.intValue());
+                    currentReference.child(task.getDatabaseKey()).removeValue(); //remove from active tasks
+                    archivedReference.child(task.getDatabaseKey()).setValue(task); //add to archive
+                }else if(task.getInSprint()){
+                    task.setInSprint(false);
+                    currentReference.child(task.getDatabaseKey()).setValue(task);
+                }
             }
         }
+
         //if isCompleted, set sprintNum
         //if is not, remove inSprint value
     }
@@ -233,7 +265,6 @@ public class MainActivity extends AppCompatActivity
                     if(dataSnapshot.hasChild("sprintInProgress")){
                         mSprintInProgress = (Boolean) dataSnapshot.child("sprintInProgress").getValue();
                         updateSprintUI();
-                        updateButton();
                     }
                     if(dataSnapshot.hasChild("currentSprint")){
                         mCurrentSprint = (Long) dataSnapshot.child("currentSprint").getValue();
@@ -244,7 +275,6 @@ public class MainActivity extends AppCompatActivity
                             setUpSprintListener(Long.toString(mCurrentSprint));
                         }
                         updateSprintUI();
-                        updateButton();
                     }
                 }else{
                     mSprintStatusDatabaseReference.child("sprintInProgress").setValue(false);
@@ -280,7 +310,6 @@ public class MainActivity extends AppCompatActivity
                 if(dataSnapshot != null){
                     mSprint = dataSnapshot.getValue(Sprint.class);
                     updateSprintUI();
-                    updateButton();
                 }
             }
 
@@ -299,6 +328,56 @@ public class MainActivity extends AppCompatActivity
         if(mSprintInProgress){
             planning.setVisibility(View.INVISIBLE);
             inProgress.setVisibility(View.VISIBLE);
+            if(mSprint != null){
+                //defining views to be changed
+                TextView sprintNum = findViewById(R.id.tv_sprint_in_progress_number);
+                TextView startDate = findViewById(R.id.tv_start_date);
+                TextView endDate = findViewById(R.id.tv_end_date);
+                TextView progressDescription = findViewById(R.id.tv_progress_description);
+                TextView pointsRatio = findViewById(R.id.tv_points_ratio);
+                ProgressBar progressBar = findViewById(R.id.progressBar);
+
+                //fetching, formatting, and setting dates
+                Date start = mSprint.getSprintStart();
+                Date end = mSprint.getSprintEnd();
+                if(start != null && end != null) {
+                    DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT);
+                    String startString = df.format(start);
+                    String endString = df.format(end);
+                    startDate.setText(startString);
+                    endDate.setText(endString);
+                    //finding expected progress
+
+                    //setting ratio + progress bar
+                    if (mCurrentSprint != null) {
+                        sprintNum.setText(Long.toString(mCurrentSprint));
+                    }
+                    int currentEffortPoints = mSprint.getCurrentEffortPoints();
+                    int completedEffortPoints = mSprint.getCompletedEffortPoints();
+                    String ratio = "" + Integer.toString(completedEffortPoints)
+                            + "/"
+                            + Integer.toString(currentEffortPoints);
+                    pointsRatio.setText(ratio);
+                    progressBar.setMax(currentEffortPoints);
+                    progressBar.setProgress(completedEffortPoints);
+
+                    //secondary progress bar (expected progress)
+                    long totalTime = end.getTime() - start.getTime();
+                    Date currentDate = new Date();
+                    long timeElapsed = currentDate.getTime() - start.getTime();
+                    long expectedProgress = timeElapsed * currentEffortPoints / totalTime;
+                    int expected = Integer.parseInt(Long.toString(expectedProgress));
+                    progressBar.setSecondaryProgress(expected);
+                    if(expected > completedEffortPoints){
+                        progressDescription.setText(R.string.sprint_progress_bad);
+                    } else if(completedEffortPoints > expected){
+                        progressDescription.setText(R.string.sprint_progress_good);
+                    }else {
+                        progressDescription.setText(R.string.sprint_progress_on_track);
+                    }
+                }
+            }
+
         }else{
             inProgress.setVisibility(View.INVISIBLE);
             planning.setVisibility(View.VISIBLE);
@@ -319,6 +398,7 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
+        updateButton();
     }
 
     @Override

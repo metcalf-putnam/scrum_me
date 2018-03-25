@@ -2,6 +2,7 @@ package com.example.patricemp.scrumme;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +28,15 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         int count = 0;
         for (Task task : mTaskList){
             if(task.getInSprint()){ //if in sprint
+                count = count + task.getEffort();
+            }
+        }
+        return count;
+    }
+    public int countCompleted(){
+        int count = 0;
+        for (Task task : mTaskList){
+            if(task.getCompleted()){ //if in sprint
                 count = count + task.getEffort();
             }
         }
@@ -67,6 +77,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         Button deleteButton;
         Button sprintButton;
         Button completeButton;
+        CardView cardView;
 
         public TaskViewHolder(View itemView) {
             super(itemView);
@@ -104,6 +115,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             });
             descriptionView = itemView.findViewById(R.id.tv_card_description);
             effortView = itemView.findViewById(R.id.tv_card_effort);
+            cardView = itemView.findViewById(R.id.card_view_top);
         }
 
         void bind(Task task){
@@ -123,6 +135,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 }
                 if(task.getCompleted()){
                     completeButton.setText(R.string.card_undo_complete);
+                    cardView.setCardBackgroundColor(mContext.getResources().getColor(R.color.gray));
                 }else{
                     completeButton.setText(R.string.card_mark_complete);
                 }
@@ -176,8 +189,11 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         if(mTaskList == null){
             mTaskList = new ArrayList<Task>(0);
         }
-        mTaskList.add(task);
-        notifyDataSetChanged();
+        int check = getPosition(task);
+        if(check == -1){ //don't already have task
+            mTaskList.add(task);
+            notifyDataSetChanged();
+        }
     }
 
     public void addTask(Task task, int position){

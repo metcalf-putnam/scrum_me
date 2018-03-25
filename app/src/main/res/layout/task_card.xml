@@ -7,7 +7,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     card_view:cardUseCompatPadding="true"
     card_view:cardElevation="4dp"
-    card_view:cardCornerRadius="3dp">
+    card_view:cardCornerRadius="3dp"
+    android:id="@+id/card_view_top">
 
     <LinearLayout
         android:layout_width="match_parent"

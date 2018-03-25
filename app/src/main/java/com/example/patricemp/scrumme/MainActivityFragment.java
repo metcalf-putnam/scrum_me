@@ -25,6 +25,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -95,85 +96,7 @@ public class MainActivityFragment extends Fragment
         }
         mAdapter = new TaskAdapter(this, this, this, this);
         mAdapter.clearTasks();
-        mChildEventListener = new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Task task = dataSnapshot.getValue(Task.class);
-                String key = dataSnapshot.getKey();
-                task.setDatabaseKey(key);
 
-                if(mLastDeleted != null && key.matches(mLastDeleted.getDatabaseKey())){
-                    mAdapter.addTask(task, mLastDeletedPosition);
-                }else if(task.getSprintNum()==0){
-                    mAdapter.addTask(task);
-                }
-                updateSprint();
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                Task task = dataSnapshot.getValue(Task.class);
-                mAdapter.modifyTask(task);
-                updateSprint();
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                if(getActivity() != null){
-                    Snackbar snacker = Snackbar.make(getActivity().findViewById(R.id.cl_main),
-                            R.string.removed_task, Snackbar.LENGTH_LONG);
-                    snacker.setAction(R.string.undo_remove, new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    if(mOrderBy != null && mOrderBy.matches("inSprint")){
-                                        mLastDeleted.setInSprint(true);
-                                    }
-                                    mTasksDatabaseReference
-                                            .child(mLastDeleted.getDatabaseKey())
-                                            .setValue(mLastDeleted);
-                                }
-                            }
-                    );
-                    snacker.show();
-                    updateSprint();
-                }
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        };
-        if(mOrderBy != null && !mOrderBy.isEmpty()){
-            switch (mOrderBy){
-                case "inSprint":
-                    mTasksDatabaseReference
-                            .orderByChild(mOrderBy)
-                            .equalTo(true)
-                            .addChildEventListener(mChildEventListener);
-                    break;
-                case "importance":
-                    mTasksDatabaseReference
-                            .orderByChild(mOrderBy)
-                            .addChildEventListener(mChildEventListener);
-                    break;
-
-                default:
-                    mTasksDatabaseReference
-                            .orderByKey()
-                            .addChildEventListener(mChildEventListener);
-                    break;
-            }
-
-
-        }else{
-            mTasksDatabaseReference.orderByKey().addChildEventListener(mChildEventListener);
-        }
         tasksView.setAdapter(mAdapter);
         tasksView.setHasFixedSize(true);
         return rootView;
@@ -198,12 +121,14 @@ public class MainActivityFragment extends Fragment
     public void onSprintClick(Task task) {
         if(getActivity() != null){
             if(task.getInSprint()){
-                if(mOrderBy != null && mOrderBy.matches("inSprint")){
+                if (mOrderBy != null && mOrderBy.matches("inSprint")) {
                     mLastDeleted = task;
                     mLastDeletedPosition = mAdapter.getPosition(task);
                     mAdapter.deleteTask(task);
                 }
                 task.setInSprint(false);
+                task.setCompleted(false);
+
             }else{
                 task.setInSprint(true);
             }
@@ -221,6 +146,7 @@ public class MainActivityFragment extends Fragment
                     sprint = new Sprint();
                 }
                 sprint.setCurrentEffortPoints(mAdapter.countSprintPoints());
+                sprint.setCompletedEffortPoints(mAdapter.countCompleted());
                 mSprintDatabaseReference.child(Long.toString(sprintNum)).setValue(sprint);
             }
         }
@@ -231,15 +157,19 @@ public class MainActivityFragment extends Fragment
         if(getActivity() != null){
             if(task.getCompleted()){ //if was previously marked complete
                 task.setCompleted(false);
+                task.setDateCompleted(null);
                 task.setSprintNum(0);
             }else if(mInSprintCallback.isInSprint()){
                 task.setCompleted(true);
                 Long sprint = mGetSprintNum.getSprintNum();
                 task.setSprintNum(sprint.intValue());
                 task.setInSprint(true);
+                Date currentDate = new Date();
+                task.setDateCompleted(currentDate);
             }else{
                 Toast.makeText(getContext(), "Start sprint before completing tasks",
                         Toast.LENGTH_SHORT).show();
+                return;
             }
             mTasksDatabaseReference.child(task.getDatabaseKey()).setValue(task);
         }
@@ -301,5 +231,111 @@ public class MainActivityFragment extends Fragment
 //                        .setAction("Action", null).show();
                 }
         });
+        if(mChildEventListener != null){
+            mTasksDatabaseReference.removeEventListener(mChildEventListener);
+            mAdapter.clearTasks();
+        }
+        mChildEventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Task task = dataSnapshot.getValue(Task.class);
+                String key = dataSnapshot.getKey();
+                if(task != null) {
+                    task.setDatabaseKey(key);
+                    if (mLastDeleted != null && key.matches(mLastDeleted.getDatabaseKey())) {
+                        mAdapter.addTask(task, mLastDeletedPosition);
+                    } else {
+                        mAdapter.addTask(task);
+                    }
+                    updateSprint();
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Task task = dataSnapshot.getValue(Task.class);
+                mAdapter.modifyTask(task);
+                updateSprint();
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                if(getActivity() != null){
+                    Snackbar snacker = Snackbar.make(getActivity().findViewById(R.id.cl_main),
+                            R.string.removed_task, Snackbar.LENGTH_LONG);
+                    snacker.setAction(R.string.undo_remove, new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    if(mOrderBy != null && mOrderBy.matches("inSprint")){
+                                        mLastDeleted.setInSprint(true);
+                                    }
+                                    mTasksDatabaseReference
+                                            .child(mLastDeleted.getDatabaseKey())
+                                            .setValue(mLastDeleted);
+                                }
+                            }
+                    );
+                    snacker.show();
+                    updateSprint();
+                }
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        };
+        mOrderBy="inSprint";
+        if(mOrderBy != null && !mOrderBy.isEmpty()){
+            switch (mOrderBy){
+                case "inSprint":
+                    mTasksDatabaseReference
+                            .orderByChild(mOrderBy)
+                            .equalTo(true)
+                            .addChildEventListener(mChildEventListener);
+                    break;
+                case "importance":
+                    mTasksDatabaseReference
+                            .orderByChild(mOrderBy)
+                            .addChildEventListener(mChildEventListener);
+                    break;
+
+                default:
+                    mTasksDatabaseReference
+                            .orderByChild("importance")
+                            .addChildEventListener(mChildEventListener);
+                    break;
+            }
+
+
+        }else{
+            mTasksDatabaseReference
+                    .orderByChild("inSprint")
+                    .equalTo(true)
+                    .addChildEventListener(mChildEventListener);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if(mChildEventListener != null){
+            mTasksDatabaseReference.removeEventListener(mChildEventListener);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(mChildEventListener != null){
+            mAdapter.clearTasks();
+            mTasksDatabaseReference.removeEventListener(mChildEventListener);
+            mTasksDatabaseReference.addChildEventListener(mChildEventListener);
+        }
     }
 }
