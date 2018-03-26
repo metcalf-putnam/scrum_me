@@ -18,6 +18,8 @@ public class Sprint implements Parcelable{
     private int effortPointsAdded;
     private int effortPointsSubtracted;
     private int currentEffortPoints;
+    private long sprintNum;
+    private boolean inSprint;
 
     public int getCurrentEffortPoints() {
         return currentEffortPoints;
@@ -96,6 +98,8 @@ public class Sprint implements Parcelable{
         effortPointsAdded = in.readInt();
         effortPointsSubtracted = in.readInt();
         currentEffortPoints = in.readInt();
+        sprintNum = in.readLong();
+        inSprint = (boolean) in.readValue(null);
     }
 
     @Override
@@ -112,5 +116,23 @@ public class Sprint implements Parcelable{
         dest.writeInt(effortPointsAdded);
         dest.writeInt(effortPointsSubtracted);
         dest.writeInt(currentEffortPoints);
+        dest.writeLong(sprintNum);
+        dest.writeValue(inSprint);
+    }
+
+    public long getSprintNum() {
+        return sprintNum;
+    }
+
+    public void setSprintNum(long sprintNum) {
+        this.sprintNum = sprintNum;
+    }
+
+    public boolean isInSprint() {
+        return inSprint;
+    }
+
+    public void setInSprint(boolean inSprint) {
+        this.inSprint = inSprint;
     }
 }

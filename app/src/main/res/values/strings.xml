@@ -19,6 +19,10 @@
     <string name="example_points_ratio">12/46</string>
     <string name="date_separator">—</string>
 
+    <!-- Widget -->
+    <string name="widget_error">Oops! Sign in to view</string>
+    <string name="widget_title">Sprint Tracker</string>
+
     <!-- Adding and Removing Toasts-->
     <string name="removed_task">Removed!</string>
     <string name="undo_remove">Undo?</string>

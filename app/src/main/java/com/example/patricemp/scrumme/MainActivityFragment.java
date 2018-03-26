@@ -23,6 +23,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,7 +49,12 @@ public class MainActivityFragment extends Fragment
     private int mLastDeletedPosition;
     private FirebaseAuth mFirebaseAuth;
     private String mOrderBy;
+    private String mUid;
+    private boolean mSprintInProgress;
+    private long mCurrentSprint;
+    private Sprint mSprint;
     private DatabaseReference mSprintDatabaseReference;
+    private DatabaseReference mSprintStatusReference;
 
 
     public MainActivityFragment() {
@@ -61,17 +67,22 @@ public class MainActivityFragment extends Fragment
         mFirebaseAuth = FirebaseAuth.getInstance();
 
         FirebaseUser user = mFirebaseAuth.getCurrentUser();
-        String uid = user.getUid();
+        mUid = user.getUid();
 
         mTasksDatabaseReference = mFirebaseDatabase.getReference()
                 .child("users")
-                .child(uid)
+                .child(mUid)
                 .child("tasks");
 
         mSprintDatabaseReference = mFirebaseDatabase.getReference()
                 .child("users")
-                .child(uid)
+                .child(mUid)
                 .child("sprints");
+
+        mSprintStatusReference = FirebaseDatabase.getInstance().getReference()
+                .child("users")
+                .child(mUid)
+                .child("sprint_status");
 
         if(savedInstanceState != null){
             mListState = savedInstanceState.getParcelable("state");
@@ -138,18 +149,55 @@ public class MainActivityFragment extends Fragment
     }
 
     private void updateSprint(){
-        if(getActivity() != null){
-            Long sprintNum = mGetSprintNum.getSprintNum();
-            if(sprintNum != null){
-                Sprint sprint = mGetSprintCallback.currentSprint();
-                if(sprint == null){
-                    sprint = new Sprint();
+
+        final ValueEventListener currentSprintListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot != null) {
+                    mSprint = dataSnapshot.getValue(Sprint.class);
+                    if(mSprint == null){
+                        mSprint = new Sprint();
+                        mSprint.setSprintNum(mCurrentSprint);
+                    }
+                    mSprint.setCurrentEffortPoints(mAdapter.countSprintPoints());
+                    mSprint.setCompletedEffortPoints(mAdapter.countCompleted());
+                    mSprintDatabaseReference.child(Long.toString(mCurrentSprint)).setValue(mSprint);
                 }
-                sprint.setCurrentEffortPoints(mAdapter.countSprintPoints());
-                sprint.setCompletedEffortPoints(mAdapter.countCompleted());
-                mSprintDatabaseReference.child(Long.toString(sprintNum)).setValue(sprint);
             }
-        }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        };
+        ValueEventListener sprintStatusListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    if (dataSnapshot.hasChild("sprintInProgress")) {
+                        mSprintInProgress = (boolean) dataSnapshot.child("sprintInProgress").getValue();
+                        if (mCurrentSprint > 0) {
+                            mSprintDatabaseReference
+                                    .child(Long.toString(mCurrentSprint))
+                                    .addListenerForSingleValueEvent(currentSprintListener);
+                        }
+                        if (dataSnapshot.hasChild("currentSprint")) {
+                            mCurrentSprint = (long) dataSnapshot.child("currentSprint").getValue();
+                            if (mCurrentSprint > 0 && mSprintInProgress) {
+                                mSprintDatabaseReference
+                                        .child(Long.toString(mCurrentSprint))
+                                        .addListenerForSingleValueEvent(currentSprintListener);
+                            }
+                        }
+                    }
+                }
+            }
+            @Override
+            public void onCancelled (DatabaseError databaseError){
+            }
+        };
+        mSprintStatusReference.addListenerForSingleValueEvent(sprintStatusListener);
+
+
     }
 
     @Override

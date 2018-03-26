@@ -217,6 +217,7 @@ public class FinishSprintDialogFragment extends DialogFragment{
         xAxis.setDrawLabels(false);
         xAxis.setEnabled(false);
         yAxis1.setAxisMinimum(0f);
+        yAxis1.setDrawGridLines(false);
 
         chart.invalidate(); //refresh
     }

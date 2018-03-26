@@ -1,9 +1,13 @@
 package com.example.patricemp.scrumme;
 
 import android.app.FragmentManager;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
@@ -61,15 +65,19 @@ public class MainActivity extends AppCompatActivity
     private FirebaseAuth.AuthStateListener mAuthStateListener;
     private ValueEventListener mSprintInProgressListener;
     private ValueEventListener mSprintStatusListener;
+    private DatabaseReference mSprintAverageReference;
     private Sprint mSprint;
     private boolean mSprintInProgress;
     private Long mCurrentSprint;
     private String mUid;
+    private int mAveragePoints;
+    private ValueEventListener mAverageListener;
     public static final int RC_SIGN_IN = 1;
     private static final long WEEK = 3600*1000*168;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme_NoActionBar);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -85,6 +93,7 @@ public class MainActivity extends AppCompatActivity
                     Date date = new Date();
                     if(!mSprintInProgress){ //starting new sprint
                         mSprintStatusDatabaseReference.child("sprintInProgress").setValue(true);
+                        mSprint.setSprintNum(mCurrentSprint);
                         mSprint.setSprintStart(date);
 
                         //setting planned endDate for tracking purposes
@@ -124,10 +133,6 @@ public class MainActivity extends AppCompatActivity
                         windowParams.width = WindowManager.LayoutParams.FILL_PARENT; // this is where the magic happens
                         windowParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
                         dialog.show(fm, "Results");
-                        //dialog.getDialog().getWindow().setAttributes(windowParams);
-//                        getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,
-//                                ViewGroup.LayoutParams.MATCH_PARENT);
-
 
                        //reset
                         mSprint = null;
@@ -156,6 +161,10 @@ public class MainActivity extends AppCompatActivity
                     if(mSprintStatusListener == null){
                         getSprintStatus();
                     }
+                    if(mAveragePoints <= 0){
+                        //fetch sprint data and find average points
+                        getAverage();
+                    }
 
                 } else{
                     mUid = null;
@@ -174,6 +183,36 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         };
+    }
+    private void getAverage(){
+        mSprintAverageReference = mFirebaseDatabase.getReference()
+                .child("users")
+                .child(mUid)
+                .child("sprints");
+        mSprintAverageReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot != null){
+                    double totalPointsCompleted = 0;
+                    double totalSprints = 0;
+                    for(DataSnapshot snapshot : dataSnapshot.getChildren()){
+                        Sprint sprint = snapshot.getValue(Sprint.class);
+                        if(sprint != null && sprint.getCompletedEffortPoints() > 0){
+                            totalSprints+=1;
+                            totalPointsCompleted+=sprint.getCompletedEffortPoints();
+                        }
+                    }
+                    double average = totalPointsCompleted/totalSprints;
+                    mAveragePoints = (int) average;
+                    updateSprintUI();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     @Override
@@ -214,8 +253,6 @@ public class MainActivity extends AppCompatActivity
             mFragment.setArguments(bundle);
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment, mFragment).commit();
             updateSprintUI();
-        }else {
-
         }
     }
 
@@ -270,11 +307,11 @@ public class MainActivity extends AppCompatActivity
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
                     if(dataSnapshot.hasChild("sprintInProgress")){
-                        mSprintInProgress = (Boolean) dataSnapshot.child("sprintInProgress").getValue();
+                        mSprintInProgress = (boolean) dataSnapshot.child("sprintInProgress").getValue();
                         updateSprintUI();
                     }
                     if(dataSnapshot.hasChild("currentSprint")){
-                        mCurrentSprint = (Long) dataSnapshot.child("currentSprint").getValue();
+                        mCurrentSprint = (long) dataSnapshot.child("currentSprint").getValue();
                         if(mSprintInProgressListener != null){
                             mSprintDatabaseReference.removeEventListener(mSprintInProgressListener);
                         }
@@ -316,6 +353,16 @@ public class MainActivity extends AppCompatActivity
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot != null){
                     mSprint = dataSnapshot.getValue(Sprint.class);
+                    if(mSprint.getSprintStart() != null){
+                        //update widget
+                        Context context = getBaseContext();
+                        AppWidgetManager.getInstance(context);
+                        int[] ids = AppWidgetManager
+                                .getInstance(getApplication())
+                                .getAppWidgetIds(new ComponentName(getApplication(), ProgressWidget.class));
+                        ProgressWidget widget = new ProgressWidget();
+                        widget.onUpdate(context, AppWidgetManager.getInstance(context),ids);
+                    }
                     updateSprintUI();
                 }
             }
@@ -385,10 +432,11 @@ public class MainActivity extends AppCompatActivity
                 }
             }
 
-        }else{
+        }else{ //in planning stage
             inProgress.setVisibility(View.INVISIBLE);
             planning.setVisibility(View.VISIBLE);
 
+            TextView sprintAverage = findViewById(R.id.tv_average_sprint_points);
             TextView sprintPoints = findViewById(R.id.tv_sprint_points);
             TextView sprintNum = findViewById(R.id.tv_sprint_number);
             if(mSprint != null){
@@ -402,6 +450,11 @@ public class MainActivity extends AppCompatActivity
             if(mCurrentSprint != null){
                 String num = Long.toString(mCurrentSprint);
                 sprintNum.setText(num);
+            }
+            if(mAveragePoints > 0){
+                sprintAverage.setText(Integer.toString(mAveragePoints));
+            }else{
+                sprintAverage.setText("N/A");
             }
         }
 
