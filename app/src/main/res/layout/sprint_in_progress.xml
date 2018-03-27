@@ -4,8 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/colorPrimary">
+    android:layout_height="match_parent">
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -24,7 +23,8 @@
         android:id="@+id/tv_progress_description"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginTop="2dp"
         android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
@@ -37,6 +37,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
         android:text="@string/sprint_title"
         android:textAppearance="@style/TextAppearance.AppCompat.Display1"
@@ -50,6 +51,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="2dp"
+        android:layout_marginLeft="2dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Display1"
         android:textColor="@color/white"
         app:layout_constraintStart_toEndOf="@+id/tv_sprint_in_progress_label"
@@ -61,6 +63,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
         android:layout_marginTop="2dp"
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
@@ -72,6 +75,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
         android:layout_marginTop="8dp"
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
@@ -83,6 +87,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="@+id/tv_hyphen"
         app:layout_constraintStart_toStartOf="@+id/tv_hyphen"
@@ -101,5 +106,19 @@
         app:layout_constraintEnd_toEndOf="@+id/tv_start_date"
         app:layout_constraintStart_toStartOf="@+id/tv_start_date"
         app:layout_constraintTop_toBottomOf="@+id/tv_start_date" />
+
+    <TextView
+        android:id="@+id/tv_inspirational_quote"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/white"
+        android:textStyle="italic"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_progress_description"
+        tools:text="It's not about what you make, it's about what you make them feel" />
 
 </android.support.constraint.ConstraintLayout>

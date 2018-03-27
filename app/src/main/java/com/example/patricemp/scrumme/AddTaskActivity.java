@@ -32,9 +32,7 @@ public class AddTaskActivity extends AppCompatActivity {
     @BindView(R.id.spinner_importance) Spinner importanceIn;
     @BindView(R.id.switch_in_sprint) Switch inSprintSwitch;
     @BindView(R.id.tv_task_header) TextView header;
-    private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mTasksDatabaseReference;
-    private FirebaseAuth mFirebaseAuth;
     private boolean newTask = true;
     private Task mTask;
 
@@ -44,16 +42,17 @@ public class AddTaskActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_task);
         ButterKnife.bind(this);
 
-        mFirebaseDatabase = FirebaseDatabase.getInstance();
-        mFirebaseAuth = FirebaseAuth.getInstance();
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
 
-        FirebaseUser user = mFirebaseAuth.getCurrentUser();
-        String uid = user.getUid();
-
-        mTasksDatabaseReference = mFirebaseDatabase.getReference()
-                .child("users")
-                .child(uid)
-                .child("tasks");
+        FirebaseUser user = firebaseAuth.getCurrentUser();
+        if(user != null){
+            String uid = user.getUid();
+            mTasksDatabaseReference = firebaseDatabase.getReference()
+                    .child("users")
+                    .child(uid)
+                    .child("tasks");
+        }
 
         Intent intent = getIntent();
         importanceIn.setSelection(3); //sets default importance value to "not important"
@@ -72,7 +71,7 @@ public class AddTaskActivity extends AppCompatActivity {
                 getTask();
                 Intent intent = new Intent(getBaseContext(), MainActivity.class);
                 intent.putExtra("task", mTask);
-                if(newTask == true){
+                if(newTask){
                     mTasksDatabaseReference.push().setValue(mTask);
                 }else{
                     mTasksDatabaseReference.child(mTask.getDatabaseKey()).setValue(mTask);
@@ -124,7 +123,7 @@ public class AddTaskActivity extends AppCompatActivity {
     }
 
     private void updateLabels(){
-        if(newTask==false){
+        if(!newTask){
             submitButton.setText(R.string.update);
             header.setText(R.string.modify_task_header);
         }

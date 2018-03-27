@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.os.PersistableBundle;
@@ -46,7 +47,16 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Array;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -57,7 +67,7 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
         implements MainActivityFragment.onTaskClickListener, MainActivityFragment.checkInSprint,
-        MainActivityFragment.getSprint, MainActivityFragment.getSprintNum{
+        MainActivityFragment.getSprint, MainActivityFragment.sprintNumProvider{
 
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mSprintDatabaseReference;
@@ -68,7 +78,6 @@ public class MainActivity extends AppCompatActivity
     private FirebaseAuth.AuthStateListener mAuthStateListener;
     private ValueEventListener mSprintInProgressListener;
     private ValueEventListener mSprintStatusListener;
-    private DatabaseReference mSprintAverageReference;
     private Sprint mSprint;
     private boolean mSprintInProgress;
     private Long mCurrentSprint;
@@ -83,8 +92,11 @@ public class MainActivity extends AppCompatActivity
         setTheme(R.style.AppTheme_NoActionBar);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        TextView quote = findViewById(R.id.tv_inspirational_quote);
+
+        new GetQuoteTask().execute();
 
         mFirebaseDatabase = FirebaseDatabase.getInstance();
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -188,11 +200,11 @@ public class MainActivity extends AppCompatActivity
         };
     }
     private void getAverage(){
-        mSprintAverageReference = mFirebaseDatabase.getReference()
+        DatabaseReference sprintAverageReference = mFirebaseDatabase.getReference()
                 .child("users")
                 .child(mUid)
                 .child("sprints");
-        mSprintAverageReference.addListenerForSingleValueEvent(new ValueEventListener() {
+        sprintAverageReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot != null){
@@ -301,6 +313,55 @@ public class MainActivity extends AppCompatActivity
             sprintButton.setText(R.string.plan_sprint);
         }
 
+    }
+
+    private class GetQuoteTask extends AsyncTask<Void, Void, String>{
+
+        //using modified code from https://androidkennel.org/android-networking-tutorial-with-asynctask/
+        @Override
+        protected String doInBackground(Void... voids) {
+            try{
+                URL url = new URL("http://quotesondesign.com/wp-json/posts?filter[orderby]=rand&filter[posts_per_page]=1");
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                InputStream stream = new BufferedInputStream(urlConnection.getInputStream());
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream));
+                StringBuilder builder = new StringBuilder();
+
+                String inputString;
+                while ((inputString = bufferedReader.readLine()) != null) {
+                    builder.append(inputString);
+                }
+                JSONArray array = new JSONArray(builder.toString());
+                JSONObject quoteObject = array.getJSONObject(0);
+                String quote = quoteObject.getString("content");
+                String formattedQuote = android.text.Html.fromHtml(quote).toString();
+                int index = quote.indexOf(".");
+                if(index >0){
+                    return formattedQuote.substring(0, index-1);
+                }
+
+                return formattedQuote;
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(String quote) {
+            super.onPostExecute(quote);
+            TextView quoteContainer = findViewById(R.id.tv_inspirational_quote);
+            if(quoteContainer != null){
+                quoteContainer.setText(quote);
+            }
+        }
     }
     private void getSprintStatus(){
 
@@ -471,6 +532,7 @@ public class MainActivity extends AppCompatActivity
 
         updateButton();
     }
+
 
     @Override
     public void onTaskSelected(Task task) {

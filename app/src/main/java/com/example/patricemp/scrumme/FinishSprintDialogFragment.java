@@ -41,7 +41,6 @@ public class FinishSprintDialogFragment extends DialogFragment{
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setStyle(DialogFragment.STYLE_NORMAL, R.style.Theme_Dialog);
     }
 
     @Override
@@ -51,7 +50,9 @@ public class FinishSprintDialogFragment extends DialogFragment{
         if(d!=null){
             int width = ViewGroup.LayoutParams.MATCH_PARENT;
             int height = ViewGroup.LayoutParams.MATCH_PARENT;
-            d.getWindow().setLayout(width, height);
+            if(d.getWindow() != null){
+                d.getWindow().setLayout(width, height);
+            }
         }
     }
 

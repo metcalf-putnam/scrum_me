@@ -126,7 +126,8 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 }
                 int effort = task.getEffort();
                 if(effort > 0){
-                    effortView.setText("" + task.getEffort());
+                    String effortString = "" + task.getEffort();
+                    effortView.setText(effortString);
                 }
                 if(task.getInSprint()){
                     sprintButton.setText(R.string.card_remove_from_sprint_text);
@@ -160,9 +161,8 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         boolean shouldAttachToParentImmediately = false;
 
         View view = inflater.inflate(taskLayoutId, parent, shouldAttachToParentImmediately);
-        TaskViewHolder viewHolder = new TaskViewHolder(view);
+        return new TaskViewHolder(view);
 
-        return viewHolder;
     }
 
 

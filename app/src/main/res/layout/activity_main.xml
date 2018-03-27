@@ -22,7 +22,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fitsSystemWindows="true"
-            android:nextFocusDown="@+id/fragment"
             app:layout_scrollFlags="scroll|exitUntilCollapsed|enterAlways">
 
             <include layout="@layout/sprint_progress"
@@ -64,8 +63,10 @@
 
             <ImageView
                 android:id="@+id/imageView"
+                android:contentDescription="@string/logo"
                 android:layout_width="wrap_content"
                 android:layout_marginLeft="4dp"
+                android:layout_marginStart="4dp"
                 android:layout_marginTop="2dp"
                 android:layout_height="wrap_content"
                 android:fitsSystemWindows="true"
@@ -88,6 +89,6 @@
         android:layout_margin="@dimen/fab_margin"
         android:tint="@android:color/white"
         app:srcCompat="@android:drawable/ic_input_add"
-        android:focusedByDefault="true"/>
+        />
 
 </android.support.design.widget.CoordinatorLayout>

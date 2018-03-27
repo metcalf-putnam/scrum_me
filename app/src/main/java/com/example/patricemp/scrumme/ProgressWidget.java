@@ -27,7 +27,6 @@ public class ProgressWidget extends AppWidgetProvider {
     private boolean mSprintInProgress;
     private Sprint mSprint;
     private long mCurrentSprint;
-    private String mUid;
 
     public void onUpdate(final Context context, final AppWidgetManager appWidgetManager, final int[] appWidgetIds) {
 
@@ -36,15 +35,15 @@ public class ProgressWidget extends AppWidgetProvider {
 
         if(user != null) {
             //signed in
-            mUid = user.getUid();
+            String uid = user.getUid();
             DatabaseReference sprintStatusReference = FirebaseDatabase.getInstance().getReference()
                     .child("users")
-                    .child(mUid)
+                    .child(uid)
                     .child("sprint_status");
 
             final DatabaseReference sprintReference = FirebaseDatabase.getInstance().getReference()
                     .child("users")
-                    .child(mUid)
+                    .child(uid)
                     .child("sprints");
 
             final ValueEventListener currentSprintListener = new ValueEventListener() {
@@ -154,11 +153,7 @@ public class ProgressWidget extends AppWidgetProvider {
                 views.setViewVisibility(R.id.tv_widget_error, View.VISIBLE);
                 views.setTextViewText(R.id.tv_widget_error, "Oops! Please sign in");
             }
-            //views.setTextViewText(R.id.tv_widget_progress_description, "wow you suck");
-            //views.setTextViewText(R.id.tv_widget_points, "puppies");
-            //ComponentName thisWidget = new ComponentName(context, ProgressWidget.class);
 
-            // Tell the AppWidgetManager to perform an update on the current app widget
             appWidgetManager.updateAppWidget(appWidgetId, views);
         }
     }

@@ -40,8 +40,7 @@ public class MainActivityFragment extends Fragment
     private Parcelable mListState;
     private onTaskClickListener mCallback;
     private checkInSprint mInSprintCallback;
-    private getSprint mGetSprintCallback;
-    private getSprintNum mGetSprintNum;
+    private sprintNumProvider mGetSprintNum;
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mTasksDatabaseReference;
     private ChildEventListener mChildEventListener;
@@ -67,22 +66,24 @@ public class MainActivityFragment extends Fragment
         mFirebaseAuth = FirebaseAuth.getInstance();
 
         FirebaseUser user = mFirebaseAuth.getCurrentUser();
-        mUid = user.getUid();
+        if(user != null){
+            mUid = user.getUid();
 
-        mTasksDatabaseReference = mFirebaseDatabase.getReference()
-                .child("users")
-                .child(mUid)
-                .child("tasks");
+            mTasksDatabaseReference = mFirebaseDatabase.getReference()
+                    .child("users")
+                    .child(mUid)
+                    .child("tasks");
 
-        mSprintDatabaseReference = mFirebaseDatabase.getReference()
-                .child("users")
-                .child(mUid)
-                .child("sprints");
+            mSprintDatabaseReference = mFirebaseDatabase.getReference()
+                    .child("users")
+                    .child(mUid)
+                    .child("sprints");
 
-        mSprintStatusReference = FirebaseDatabase.getInstance().getReference()
-                .child("users")
-                .child(mUid)
-                .child("sprint_status");
+            mSprintStatusReference = FirebaseDatabase.getInstance().getReference()
+                    .child("users")
+                    .child(mUid)
+                    .child("sprint_status");
+        }
 
         if(savedInstanceState != null){
             mListState = savedInstanceState.getParcelable("state");
@@ -238,7 +239,7 @@ public class MainActivityFragment extends Fragment
         Sprint currentSprint();
     }
 
-    public interface getSprintNum{
+    public interface sprintNumProvider{
         Long getSprintNum();
     }
 
@@ -254,8 +255,7 @@ public class MainActivityFragment extends Fragment
         try{
             mCallback = (onTaskClickListener) context;
             mInSprintCallback = (checkInSprint) context;
-            mGetSprintCallback = (getSprint) context;
-            mGetSprintNum = (getSprintNum) context;
+            mGetSprintNum = (sprintNumProvider) context;
         } catch(Exception e){
             e.printStackTrace();
         }
@@ -274,7 +274,7 @@ public class MainActivityFragment extends Fragment
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fab);
+        FloatingActionButton fab = getActivity().findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -383,11 +383,6 @@ public class MainActivityFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
-        if(mChildEventListener != null){
-//            mAdapter.clearTasks();
-//            mTasksDatabaseReference.removeEventListener(mChildEventListener);
-//            mTasksDatabaseReference.addChildEventListener(mChildEventListener);
-        }
         if(mListState != null){
             mLayoutManager.onRestoreInstanceState(mListState);
         }
@@ -396,6 +391,5 @@ public class MainActivityFragment extends Fragment
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setRetainInstance(true);
     }
 }
