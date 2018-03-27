@@ -40,6 +40,7 @@ android {
         release{
             storeFile file("..\\..\\keystores\\android.jks")
             storePassword System.getenv("KSTOREPWD")
+            System.getenv("KSTOREPWD")
             keyAlias "myFirstKeystore"
             keyPassword System.getenv("KEYPWD")
         }

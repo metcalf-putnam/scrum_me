@@ -74,7 +74,6 @@ public class MainActivity extends AppCompatActivity
     private DatabaseReference mSprintStatusDatabaseReference;
     private FirebaseAuth mFirebaseAuth;
     private MainActivityFragment mFragment;
-    private boolean mFragmentAttached;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
     private ValueEventListener mSprintInProgressListener;
     private ValueEventListener mSprintStatusListener;
@@ -169,7 +168,8 @@ public class MainActivity extends AppCompatActivity
                 if(user != null){
                     //signed in
                     mUid = user.getUid();
-                    if(mFragment == null && !mFragmentAttached){
+
+                    if(mFragment == null){
                         newFragment("importance");
                     }
 
@@ -547,7 +547,10 @@ public class MainActivity extends AppCompatActivity
         super.onSaveInstanceState(outState, outPersistentState);
         //outState.putBoolean("fragment_exists", mFragmentAttached);
         if(mFragment != null){
-            getSupportFragmentManager().beginTransaction().remove(mFragment).commit();
+            //getSupportFragmentManager().beginTransaction().remove(mFragment).commit();
+        }
+        if(mAuthStateListener != null){
+            mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
         }
 
     }
