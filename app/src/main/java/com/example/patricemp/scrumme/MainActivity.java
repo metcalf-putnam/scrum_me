@@ -3,29 +3,16 @@ package com.example.patricemp.scrumme;
 import android.app.FragmentManager;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.os.PersistableBundle;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.constraint.ConstraintLayout;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.text.Layout;
-import android.text.format.DateUtils;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -34,13 +21,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -54,20 +36,17 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
         implements MainActivityFragment.onTaskClickListener, MainActivityFragment.checkInSprint,
-        MainActivityFragment.getSprint, MainActivityFragment.sprintNumProvider{
+        MainActivityFragment.sprintNumProvider{
 
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mSprintDatabaseReference;
@@ -82,7 +61,6 @@ public class MainActivity extends AppCompatActivity
     private Long mCurrentSprint;
     private String mUid;
     private int mAveragePoints;
-    private ValueEventListener mAverageListener;
     public static final int RC_SIGN_IN = 1;
     private static final long WEEK = 3600*1000*168;
 
@@ -93,7 +71,6 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        TextView quote = findViewById(R.id.tv_inspirational_quote);
 
         new GetQuoteTask().execute();
 
@@ -144,7 +121,7 @@ public class MainActivity extends AppCompatActivity
                         dialog.setCancelable(true);
                         WindowManager.LayoutParams windowParams = new WindowManager.LayoutParams();
                         windowParams.copyFrom(getWindow().getAttributes());
-                        windowParams.width = WindowManager.LayoutParams.FILL_PARENT; // this is where the magic happens
+                        windowParams.width = WindowManager.LayoutParams.MATCH_PARENT; // this is where the magic happens
                         windowParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
                         dialog.show(fm, "Results");
 
@@ -154,7 +131,7 @@ public class MainActivity extends AppCompatActivity
                         newFragment("importance");
                     }
                 }else{
-                    Toast.makeText(getBaseContext(), "Can't start a sprint without tasks!",
+                    Toast.makeText(getBaseContext(), R.string.toast_empty_sprint,
                             Toast.LENGTH_SHORT).show();
                 }
             }
@@ -349,10 +326,6 @@ public class MainActivity extends AppCompatActivity
             return null;
         }
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
 
         @Override
         protected void onPostExecute(String quote) {
@@ -517,7 +490,7 @@ public class MainActivity extends AppCompatActivity
                     sprintPoints.setText(points);
                 }
             }else{
-                sprintPoints.setText("N/A");
+                sprintPoints.setText(getText(R.string.no_points_found));
             }
             if(mCurrentSprint != null){
                 String num = Long.toString(mCurrentSprint);
@@ -526,7 +499,7 @@ public class MainActivity extends AppCompatActivity
             if(mAveragePoints > 0){
                 sprintAverage.setText(Integer.toString(mAveragePoints));
             }else{
-                sprintAverage.setText("N/A");
+                sprintAverage.setText(getText(R.string.no_points_found));
             }
         }
 
@@ -547,7 +520,7 @@ public class MainActivity extends AppCompatActivity
         super.onSaveInstanceState(outState, outPersistentState);
         //outState.putBoolean("fragment_exists", mFragmentAttached);
         if(mFragment != null){
-            //getSupportFragmentManager().beginTransaction().remove(mFragment).commit();
+            getSupportFragmentManager().beginTransaction().remove(mFragment).commit();
         }
         if(mAuthStateListener != null){
             mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
@@ -587,11 +560,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean isInSprint() {
         return mSprintInProgress;
-    }
-
-    @Override
-    public Sprint currentSprint() {
-        return mSprint;
     }
 
     @Override

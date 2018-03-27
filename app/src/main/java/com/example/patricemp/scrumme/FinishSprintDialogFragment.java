@@ -2,7 +2,6 @@ package com.example.patricemp.scrumme;
 
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -12,18 +11,13 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.AxisBase;
-import com.github.mikephil.charting.components.Description;
-import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -37,11 +31,6 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class FinishSprintDialogFragment extends DialogFragment{
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 
     @Override
     public void onStart() {
@@ -60,7 +49,7 @@ public class FinishSprintDialogFragment extends DialogFragment{
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.dialog_finish_sprint_fragment, container, false);
-        getDialog().setTitle("Sprint Complete");
+        getDialog().setTitle(rootView.getContext().getString(R.string.dialog_sprint_complete));
 
         Button close = rootView.findViewById(R.id.button_dialog_close);
         close.setOnClickListener(new View.OnClickListener() {
@@ -127,7 +116,6 @@ public class FinishSprintDialogFragment extends DialogFragment{
         long currentTime = TimeUnit.MILLISECONDS.toHours(System.currentTimeMillis());
         long period = 4;
         for(int x = 0; x < 10; x++){
-            int y  = x*2;
             currentTime += period;
             float xDate = (float) currentTime;
             float yValue = (float) period * 5.0f*x;
@@ -138,13 +126,10 @@ public class FinishSprintDialogFragment extends DialogFragment{
         lineData.setDrawValues(true);
         lineData.setHighlightEnabled(true);
         chart.setData(lineData);
-        chart.getDescription().setText("data data data boi");
+        chart.getDescription().setEnabled(false);
         XAxis xAxis = chart.getXAxis();
         YAxis yAxis2 = chart.getAxisRight();
         yAxis2.setEnabled(false);
-        //xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        //xAxis.setTextSize(10f);
-        //xAxis.setTextColor(Color.RED);
         xAxis.setDrawAxisLine(true);
         xAxis.setDrawGridLines(true);
         xAxis.setDrawLabels(true);
@@ -171,7 +156,7 @@ public class FinishSprintDialogFragment extends DialogFragment{
                 }
             }
             //setting data rigmarole for actual/completed
-            LineDataSet setActual = new LineDataSet(actual, "Completed");
+            LineDataSet setActual = new LineDataSet(actual, getString(R.string.actual_data_label));
             setActual.setCircleColor(R.color.colorAccent);
             setActual.setColor(R.color.colorAccent);
             //setActual.setFillColor(R.color.colorAccent);
@@ -198,7 +183,7 @@ public class FinishSprintDialogFragment extends DialogFragment{
         }
 
         //setting data rigmarole for planned
-        LineDataSet setPlanned = new LineDataSet(planned, "Planned");
+        LineDataSet setPlanned = new LineDataSet(planned, getString(R.string.planned_data_label));
         dataSets.add(setPlanned);
 
         //charting

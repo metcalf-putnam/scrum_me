@@ -3,7 +3,6 @@ package com.example.patricemp.scrumme;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.lang.reflect.Array;
 import java.util.Date;
 
 /**

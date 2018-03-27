@@ -3,7 +3,6 @@ package com.example.patricemp.scrumme;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.view.View;
@@ -115,6 +114,7 @@ public class ProgressWidget extends AppWidgetProvider {
             // to the button
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.progress_widget);
             views.setOnClickPendingIntent(R.id.frame_widget, pendingIntent);
+
             //views = updateUI(views);
             if(mCurrentSprint > 0){ //have data
                 if(mSprintInProgress && mSprint != null){
@@ -136,22 +136,22 @@ public class ProgressWidget extends AppWidgetProvider {
                         int expected = Integer.parseInt(Long.toString(expectedProgress));
                         int completedEffortPoints = mSprint.getCompletedEffortPoints();
                         if(expected > completedEffortPoints){
-                            views.setTextViewText(R.id.tv_widget_progress_description, "behind :(");
+                            views.setTextViewText(R.id.tv_widget_progress_description, context.getString(R.string.sprint_progress_bad));
                         }else if(completedEffortPoints > expected){
-                            views.setTextViewText(R.id.tv_widget_progress_description, "Woo hoo!");
+                            views.setTextViewText(R.id.tv_widget_progress_description, context.getString(R.string.sprint_progress_good));
                         }else {
-                            views.setTextViewText(R.id.tv_widget_progress_description, "on track");
+                            views.setTextViewText(R.id.tv_widget_progress_description, context.getString(R.string.sprint_progress_on_track));
                         }
                     }
                 }else{
                     views.setViewVisibility(R.id.linear_layout_progress_holder, View.INVISIBLE);
                     views.setViewVisibility(R.id.tv_widget_error, View.VISIBLE);
-                    views.setTextViewText(R.id.tv_widget_error, "no active sprint");
+                    views.setTextViewText(R.id.tv_widget_error, context.getString(R.string.no_active_sprint));
                 }
             }else{
                 views.setViewVisibility(R.id.linear_layout_progress_holder, View.INVISIBLE);
                 views.setViewVisibility(R.id.tv_widget_error, View.VISIBLE);
-                views.setTextViewText(R.id.tv_widget_error, "Oops! Please sign in");
+                views.setTextViewText(R.id.tv_widget_error, context.getString(R.string.sign_in));
             }
 
             appWidgetManager.updateAppWidget(appWidgetId, views);

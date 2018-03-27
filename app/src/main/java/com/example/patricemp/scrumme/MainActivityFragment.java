@@ -3,7 +3,6 @@ package com.example.patricemp.scrumme;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Parcelable;
-import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -219,7 +218,7 @@ public class MainActivityFragment extends Fragment
                 Date currentDate = new Date();
                 task.setDateCompleted(currentDate);
             }else{
-                Toast.makeText(getContext(), "Start sprint before completing tasks",
+                Toast.makeText(getContext(), getString(R.string.complete_pressed_no_sprint),
                         Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -233,10 +232,6 @@ public class MainActivityFragment extends Fragment
 
     public interface checkInSprint {
         boolean isInSprint();
-    }
-
-    public interface getSprint{
-        Sprint currentSprint();
     }
 
     public interface sprintNumProvider{
@@ -388,8 +383,4 @@ public class MainActivityFragment extends Fragment
         }
     }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 }
