@@ -38,11 +38,10 @@ android {
     }
     signingConfigs{
         release{
-            storeFile file("..\\..\\keystores\\android.jks")
-            storePassword System.getenv("KSTOREPWD")
-            System.getenv("KSTOREPWD")
+            storeFile file("..\\android.jks")
+            storePassword "IHatePasswordsGrrrr4"
             keyAlias "myFirstKeystore"
-            keyPassword System.getenv("KEYPWD")
+            keyPassword "397fhSSutlj!!"
         }
     }
     buildTypes {
