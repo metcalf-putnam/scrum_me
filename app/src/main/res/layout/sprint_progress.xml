@@ -83,6 +83,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:focusable="true"
         android:layout_marginTop="8dp"
         android:entries="@array/sprint_length_entries"
         app:layout_constraintStart_toStartOf="@+id/tv_sprint_label"

@@ -117,17 +117,17 @@ public class ProgressWidget extends AppWidgetProvider {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.progress_widget);
             views.setOnClickPendingIntent(R.id.frame_widget, pendingIntent);
             //views = updateUI(views);
-            if(mCurrentSprint > 0 && mSprint != null){ //have data
-                if(mSprintInProgress){
+            if(mCurrentSprint > 0){ //have data
+                if(mSprintInProgress && mSprint != null){
                     int completed = mSprint.getCompletedEffortPoints();
                     int current = mSprint.getCurrentEffortPoints();
                     views.setProgressBar(R.id.widget_progress_bar, current, completed, false);
-                    views.setViewVisibility(R.id.frame_widget, View.VISIBLE);
+                    views.setViewVisibility(R.id.linear_layout_progress_holder, View.VISIBLE);
                     views.setViewVisibility(R.id.tv_widget_error, View.INVISIBLE);
                     String pointsRatio = "" + Integer.toString(completed) + "/" + Integer.toString(current);
                     views.setTextViewText(R.id.tv_widget_points, pointsRatio);
                     //views = checkIfOnTrack(views);
-                    if(mSprint != null){
+                    if(mSprint.getSprintStart() != null){
                         long start = mSprint.getSprintStart().getTime();
                         long end = mSprint.getSprintEnd().getTime();
                         long totalTime = end - start;
@@ -145,10 +145,12 @@ public class ProgressWidget extends AppWidgetProvider {
                         }
                     }
                 }else{
+                    views.setViewVisibility(R.id.linear_layout_progress_holder, View.INVISIBLE);
+                    views.setViewVisibility(R.id.tv_widget_error, View.VISIBLE);
                     views.setTextViewText(R.id.tv_widget_error, "no active sprint");
                 }
             }else{
-                views.setViewVisibility(R.id.frame_widget, View.INVISIBLE);
+                views.setViewVisibility(R.id.linear_layout_progress_holder, View.INVISIBLE);
                 views.setViewVisibility(R.id.tv_widget_error, View.VISIBLE);
                 views.setTextViewText(R.id.tv_widget_error, "Oops! Please sign in");
             }

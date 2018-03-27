@@ -90,6 +90,9 @@ public class MainActivityFragment extends Fragment
                 mLastDeleted = savedInstanceState.getParcelable("lastRemoved");
                 mLastDeletedPosition = savedInstanceState.getInt("lastDeletedPosition");
             }
+            if(savedInstanceState.containsKey("list_state")){
+                mListState = savedInstanceState.getParcelable("list_state");
+            }
         }
         Bundle bundle = getArguments();
         if(bundle != null){
@@ -264,6 +267,8 @@ public class MainActivityFragment extends Fragment
         outState.putParcelable("state", mListState);
         outState.putParcelable("lastRemoved", mLastDeleted);
         outState.putInt("lastRemovedPosition", mLastDeletedPosition);
+        outState.putParcelable("list_state", mListState);
+
     }
 
     @Override
@@ -372,9 +377,7 @@ public class MainActivityFragment extends Fragment
     @Override
     public void onPause() {
         super.onPause();
-        if(mChildEventListener != null){
-//            mTasksDatabaseReference.removeEventListener(mChildEventListener);
-        }
+        mListState = mLayoutManager.onSaveInstanceState();
     }
 
     @Override
@@ -385,5 +388,14 @@ public class MainActivityFragment extends Fragment
 //            mTasksDatabaseReference.removeEventListener(mChildEventListener);
 //            mTasksDatabaseReference.addChildEventListener(mChildEventListener);
         }
+        if(mListState != null){
+            mLayoutManager.onRestoreInstanceState(mListState);
+        }
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        //setRetainInstance(true);
     }
 }

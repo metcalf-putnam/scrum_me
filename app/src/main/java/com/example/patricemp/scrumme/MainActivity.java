@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.os.PersistableBundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
@@ -15,6 +16,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Layout;
 import android.text.format.DateUtils;
@@ -62,6 +64,7 @@ public class MainActivity extends AppCompatActivity
     private DatabaseReference mSprintStatusDatabaseReference;
     private FirebaseAuth mFirebaseAuth;
     private MainActivityFragment mFragment;
+    private boolean mFragmentAttached;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
     private ValueEventListener mSprintInProgressListener;
     private ValueEventListener mSprintStatusListener;
@@ -76,7 +79,7 @@ public class MainActivity extends AppCompatActivity
     private static final long WEEK = 3600*1000*168;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         setTheme(R.style.AppTheme_NoActionBar);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -154,7 +157,7 @@ public class MainActivity extends AppCompatActivity
                 if(user != null){
                     //signed in
                     mUid = user.getUid();
-                    if(mFragment == null){
+                    if(mFragment == null && !mFragmentAttached){
                         newFragment("importance");
                     }
 
@@ -251,8 +254,12 @@ public class MainActivity extends AppCompatActivity
             bundle.putString("orderBy", order);
             mFragment = new MainActivityFragment();
             mFragment.setArguments(bundle);
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment, mFragment).commit();
-            updateSprintUI();
+            View view = findViewById(R.id.fragment);
+            if(view != null){
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment, mFragment).commit();
+                updateSprintUI();
+            }
+
         }
     }
 
@@ -309,6 +316,7 @@ public class MainActivity extends AppCompatActivity
                     if(dataSnapshot.hasChild("sprintInProgress")){
                         mSprintInProgress = (boolean) dataSnapshot.child("sprintInProgress").getValue();
                         updateSprintUI();
+                        updateWidget();
                     }
                     if(dataSnapshot.hasChild("currentSprint")){
                         mCurrentSprint = (long) dataSnapshot.child("currentSprint").getValue();
@@ -353,15 +361,8 @@ public class MainActivity extends AppCompatActivity
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot != null){
                     mSprint = dataSnapshot.getValue(Sprint.class);
-                    if(mSprint.getSprintStart() != null){
-                        //update widget
-                        Context context = getBaseContext();
-                        AppWidgetManager.getInstance(context);
-                        int[] ids = AppWidgetManager
-                                .getInstance(getApplication())
-                                .getAppWidgetIds(new ComponentName(getApplication(), ProgressWidget.class));
-                        ProgressWidget widget = new ProgressWidget();
-                        widget.onUpdate(context, AppWidgetManager.getInstance(context),ids);
+                    if(mSprint != null && mSprint.getSprintStart() != null){
+                        updateWidget();
                     }
                     updateSprintUI();
                 }
@@ -374,6 +375,16 @@ public class MainActivity extends AppCompatActivity
         };
         mSprintDatabaseReference.addValueEventListener(mSprintInProgressListener);
 
+    }
+
+    private void updateWidget(){
+        //update widget
+        AppWidgetManager.getInstance(this);
+        int[] ids = AppWidgetManager
+                .getInstance(getApplication())
+                .getAppWidgetIds(new ComponentName(getApplication(), ProgressWidget.class));
+        ProgressWidget widget = new ProgressWidget();
+        widget.onUpdate(this, AppWidgetManager.getInstance(this),ids);
     }
 
     private void updateSprintUI(){
@@ -472,7 +483,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
         super.onSaveInstanceState(outState, outPersistentState);
-        //getSupportFragmentManager().beginTransaction().remove(mFragment).commit();
+        //outState.putBoolean("fragment_exists", mFragmentAttached);
+        if(mFragment != null){
+            getSupportFragmentManager().beginTransaction().remove(mFragment).commit();
+        }
+
     }
 
     @Override

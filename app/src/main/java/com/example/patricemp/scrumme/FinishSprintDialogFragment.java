@@ -159,9 +159,9 @@ public class FinishSprintDialogFragment extends DialogFragment{
 
         //getting actual/completed values
         int completedCount = 0;
-        if(tasks.size() > 0){
+        if(tasks != null && tasks.size() > 0){
             for(Task task : tasks){
-                if(task.getCompleted()) {
+                if(task.getCompleted() && task.getDateCompleted() != null) {
                     long date = task.getDateCompleted().getTime();
                     long formattedDate = TimeUnit.MILLISECONDS.toSeconds(date);
                     completedCount = completedCount + task.getEffort();
@@ -203,7 +203,7 @@ public class FinishSprintDialogFragment extends DialogFragment{
         //charting
         LineData data = new LineData(dataSets);
         data.setDrawValues(false);
-        data.setHighlightEnabled(false);
+        //data.setHighlightEnabled(false);
         chart.setData(data);
 
         //formatting

@@ -8,10 +8,13 @@
     android:layout_height="match_parent"
     android:name="com.example.patricemp.scrumme.MainActivityFragment"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:showIn="@layout/activity_main">
+    tools:showIn="@layout/activity_main"
+    android:focusableInTouchMode="true"
+    android:focusable="true">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rv_tasks"
+        android:nestedScrollingEnabled="false"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 </android.support.constraint.ConstraintLayout>
