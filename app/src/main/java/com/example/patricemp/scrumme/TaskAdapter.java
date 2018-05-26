@@ -138,6 +138,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                     cardView.setCardBackgroundColor(mContext.getResources().getColor(R.color.gray));
                 }else{
                     completeButton.setText(R.string.card_mark_complete);
+                    cardView.setCardBackgroundColor(mContext.getResources().getColor(R.color.white));
                 }
             }
         }
