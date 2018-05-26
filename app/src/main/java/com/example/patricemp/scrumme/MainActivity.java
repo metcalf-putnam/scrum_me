@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -232,6 +233,18 @@ public class MainActivity extends AppCompatActivity
         }
         if(id == R.id.action_inSprint){
             newFragment("inSprint");
+            return true;
+        }
+        if(id == R.id.action_logOut){
+            AuthUI.getInstance()
+                    .signOut(MainActivity.this)
+                    .addOnCompleteListener(new OnCompleteListener<Void>(){
+                        @Override
+                        public void onComplete(@NonNull com.google.android.gms.tasks.Task<Void> task) {
+                            Intent intent = new Intent(MainActivity.this, MainActivity.class);
+                            startActivity(intent);
+                        }
+                    });
             return true;
         }
 

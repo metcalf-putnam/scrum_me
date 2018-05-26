@@ -5,6 +5,7 @@
     <string name="action_sort_by_importance">By Importance</string>
     <string name="action_sort_by_date_added">By Date Added</string>
     <string name="action_sort_by_in_sprint">In Sprint</string>
+    <string name="action_log_out">log out</string>
     <string name="sprint_title">Sprint # </string>
     <string name="start_sprint">Start Sprint!</string>
     <string name="plan_sprint">(add tasks to sprint)</string>
